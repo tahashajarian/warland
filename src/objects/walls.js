@@ -31,7 +31,7 @@ const wall = (position, rotation) => {
     map.wrapS = THREE.RepeatWrapping;
     map.wrapT = THREE.RepeatWrapping;
     map.anisotropy = 4;
-    map.repeat.set(5, 2);
+    map.repeat.set(6, 2);
     map.encoding = THREE.sRGBEncoding;
     wallMat.map = map;
     wallMat.needsUpdate = true;
@@ -40,7 +40,7 @@ const wall = (position, rotation) => {
     map.wrapS = THREE.RepeatWrapping;
     map.wrapT = THREE.RepeatWrapping;
     map.anisotropy = 4;
-    map.repeat.set(5, 2);
+    map.repeat.set(6, 2);
     wallMat.bumpMap = map;
     wallMat.needsUpdate = true;
   });
@@ -49,7 +49,7 @@ const wall = (position, rotation) => {
     map.wrapS = THREE.RepeatWrapping;
     map.wrapT = THREE.RepeatWrapping;
     map.anisotropy = 4;
-    map.repeat.set(5, 2);
+    map.repeat.set(6, 2);
     wallMat.roughnessMap = map;
     wallMat.needsUpdate = true;
   });

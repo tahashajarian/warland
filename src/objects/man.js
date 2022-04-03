@@ -14,10 +14,11 @@ export class Man {
     loader.setPath('models/');
     loader.load('man.fbx', (fbx) => {
       console.log(fbx)
+      this.character = fbx;
       fbx.scale.setScalar(0.02);
       fbx.position.y = 0.45
 
-      loader.load('run.fbx', (fbx_a) => {
+      loader.load('walking.fbx', (fbx_a) => {
         console.log(fbx_a)
         const mixer = new THREE.AnimationMixer(fbx);
         mixer.clipAction(fbx_a.animations[0]).play();
@@ -30,5 +31,13 @@ export class Man {
       // });
       this.scene.add(fbx)
     })
+  }
+  update(delta) {
+    if (this.character) {
+      this.character.position.z += (2.2 * delta)
+      if (this.character.position.z >= 50) {
+        this.character.position.z = -50
+      }
+    }
   }
 }

@@ -106,6 +106,7 @@ class World {
     window.requestAnimationFrame(() => this.update())
     this.stats.update();
     const delta = this.clock.getDelta();
+    this.man.update(delta);
 
     for (let i = 0; i < this.mixers.length; i++) {
       const mixer = this.mixers[i];
