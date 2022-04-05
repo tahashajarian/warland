@@ -34,25 +34,26 @@ const wall = (position, rotation) => {
     map.repeat.set(6, 2);
     map.encoding = THREE.sRGBEncoding;
     wallMat.map = map;
-    wallMat.needsUpdate = true;
-  });
-  textureLoader.load("/textures/ground/brick_bump.jpg", function (map) {
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(6, 2);
-    wallMat.bumpMap = map;
-    wallMat.needsUpdate = true;
-  });
 
-  textureLoader.load("/textures/ground/brick_roughness.jpg", function (map) {
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(6, 2);
-    wallMat.roughnessMap = map;
     wallMat.needsUpdate = true;
   });
+  // textureLoader.load("/textures/ground/brick_bump.jpg", function (map) {
+  //   map.wrapS = THREE.RepeatWrapping;
+  //   map.wrapT = THREE.RepeatWrapping;
+  //   map.anisotropy = 4;
+  //   map.repeat.set(6, 2);
+  //   wallMat.bumpMap = map;
+  //   wallMat.needsUpdate = true;
+  // });
+
+  // textureLoader.load("/textures/ground/brick_roughness.jpg", function (map) {
+  //   map.wrapS = THREE.RepeatWrapping;
+  //   map.wrapT = THREE.RepeatWrapping;
+  //   map.anisotropy = 4;
+  //   map.repeat.set(6, 2);
+  //   wallMat.roughnessMap = map;
+  //   wallMat.needsUpdate = true;
+  // });
 
   const geo = new THREE.PlaneBufferGeometry(100, 20);
   const wall = new THREE.Mesh(geo, wallMat);

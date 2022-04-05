@@ -16,7 +16,7 @@ export class Man {
       console.log(fbx)
       this.character = fbx;
       fbx.scale.setScalar(0.02);
-      fbx.position.y = 0.45
+      // fbx.position.y = 0
 
       loader.load('walking.fbx', (fbx_a) => {
         console.log(fbx_a)
@@ -34,7 +34,7 @@ export class Man {
   }
   update(delta) {
     if (this.character) {
-      this.character.position.z += (2.2 * delta)
+      this.character.position.z += (2.6 * delta)
       if (this.character.position.z >= 50) {
         this.character.position.z = -50
       }

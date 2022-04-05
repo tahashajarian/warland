@@ -53,8 +53,8 @@ class World {
   }
 
   addCamera() {
-    this.camera = new THREE.PerspectiveCamera(75, this.sizes.width / this.sizes.height, 0.1, 1000)
-    this.camera.position.set(0, 5, -10)
+    this.camera = new THREE.PerspectiveCamera(20, this.sizes.width / this.sizes.height, 0.1, 1000)
+    this.camera.position.set(0, 5, -40)
     this.scene.add(this.camera)
   }
 
