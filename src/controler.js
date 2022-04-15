@@ -1,6 +1,6 @@
 export default class Controler {
   constructor() {
-    this.momvent = {
+    this.movement = {
       shift: false,
       forward: false,
       left: false,
@@ -15,7 +15,7 @@ export default class Controler {
   initDisplay() {
     // add keys to screen
     const keysContainer = document.createElement('div');
-    Object.entries(this.momvent).forEach((key) => {
+    Object.entries(this.movement).forEach((key) => {
       const elemet = document.createElement('span')
       elemet.innerText = key[0]
       elemet.id = key[0]
@@ -61,19 +61,19 @@ export default class Controler {
       const key = e.code;
       switch (key) {
         case 'KeyW':
-          this.momvent.forward = true
+          this.movement.forward = true
           break;
         case 'KeyA':
-          this.momvent.left = true
+          this.movement.left = true
           break;
         case 'KeyS':
-          this.momvent.back = true
+          this.movement.back = true
           break;
         case 'KeyD':
-          this.momvent.right = true
+          this.movement.right = true
           break;
         case 'ShiftLeft':
-          this.momvent.shift = true
+          this.movement.shift = true
           break;
 
         default:
@@ -84,19 +84,19 @@ export default class Controler {
       const key = e.code;
       switch (key) {
         case 'KeyW':
-          this.momvent.forward = false
+          this.movement.forward = false
           break;
         case 'KeyA':
-          this.momvent.left = false
+          this.movement.left = false
           break;
         case 'KeyS':
-          this.momvent.back = false
+          this.movement.back = false
           break;
         case 'KeyD':
-          this.momvent.right = false
+          this.movement.right = false
           break;
         case 'ShiftLeft':
-          this.momvent.shift = false
+          this.movement.shift = false
           break;
 
         default:
@@ -105,8 +105,8 @@ export default class Controler {
     })
   }
   updateDisplay() {
-    // console.log(this.momvent)
-    Object.entries(this.momvent).forEach((key) => {
+    // console.log(this.movement)
+    Object.entries(this.movement).forEach((key) => {
       const el = document.getElementById(key[0]);
       if (el) {
         if (key[1]) {

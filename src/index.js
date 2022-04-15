@@ -26,6 +26,7 @@ class World {
     this.addSky()
     this.clock = new THREE.Clock()
     this.controler = new Controler()
+    this.movement = this.controler.movement;
     this.update();
   }
 
@@ -100,7 +101,7 @@ class World {
 
   addObjects() {
     this.ground = new Ground(this.scene);
-    this.man = new Man(this.scene, this.mixers)
+    this.man = new Man(this, this.scene, this.mixers)
     this.wall = new Walls(this.scene)
 
   }
@@ -114,7 +115,6 @@ class World {
     const delta = this.clock.getDelta();
     this.man.update(delta);
     this.controler.updateDisplay();
-
     for (let i = 0; i < this.mixers.length; i++) {
       const mixer = this.mixers[i];
       mixer.update(delta);
