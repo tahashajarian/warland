@@ -5,6 +5,7 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import { Ground } from './objects/ground';
 import { Man } from './objects/man';
 import { Walls } from './objects/walls';
+import Controler from './controler';
 
 
 class World {
@@ -24,7 +25,7 @@ class World {
     this.addObjects()
     this.addSky()
     this.clock = new THREE.Clock()
-
+    this.controler = new Controler()
     this.update();
   }
 
@@ -82,6 +83,11 @@ class World {
   addControls() {
     this.controls = new OrbitControls(this.camera, this.canvas)
     this.controls.enableDamping = true
+    this.controls.enableDamping = true;
+    // this.controls.minDistance = 5;
+    // this.controls.maxDistance = 15;
+    this.controls.enablePan = false;
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.05;
     // this.controls.minPolarAngle = 0.5;
     // this.controls.maxPolarAngle = Math.PI * 0.5 - 0.01;
   }
@@ -107,6 +113,7 @@ class World {
     this.stats.update();
     const delta = this.clock.getDelta();
     this.man.update(delta);
+    this.controler.updateDisplay();
 
     for (let i = 0; i < this.mixers.length; i++) {
       const mixer = this.mixers[i];

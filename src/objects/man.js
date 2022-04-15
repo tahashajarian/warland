@@ -18,7 +18,7 @@ export class Man {
       fbx.scale.setScalar(0.02);
       // fbx.position.y = 0
 
-      loader.load('walking.fbx', (fbx_a) => {
+      loader.load('idle2.fbx', (fbx_a) => {
         console.log(fbx_a)
         const mixer = new THREE.AnimationMixer(fbx);
         mixer.clipAction(fbx_a.animations[0]).play();
@@ -33,11 +33,11 @@ export class Man {
     })
   }
   update(delta) {
-    if (this.character) {
-      this.character.position.z += (2.6 * delta)
-      if (this.character.position.z >= 50) {
-        this.character.position.z = -50
-      }
-    }
+    // if (this.character) {
+    //   this.character.position.z += (2.6 * delta)
+    //   if (this.character.position.z >= 50) {
+    //     this.character.position.z = -50
+    //   }
+    // }
   }
 }

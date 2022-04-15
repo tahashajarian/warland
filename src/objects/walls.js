@@ -31,7 +31,7 @@ const wall = (position, rotation) => {
     map.wrapS = THREE.RepeatWrapping;
     map.wrapT = THREE.RepeatWrapping;
     map.anisotropy = 4;
-    map.repeat.set(6, 2);
+    map.repeat.set(8, 2);
     map.encoding = THREE.sRGBEncoding;
     wallMat.map = map;
 
