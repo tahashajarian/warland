@@ -87,6 +87,16 @@ export class Character {
       if (!this.parrent.movement.forward && !this.parrent.movement.back) {
         this.playAnimation("idle");
       }
+      if (this.parrent.movement.right) {
+      }
+      if (this.parrent.movement.left) {
+        // // this.parrent.camera.position.x -= 0.1;
+        // // this.parrent.camera.position.z += 0.1;
+        // const matrix = new THREE.Matrix4();
+        // matrix.makeRotationY((delta * Math.PI) / -4);
+        // // Apply matrix like this to rotate the camera.
+        // this.parrent.camera.position.applyMatrix4(matrix);
+      }
       this.rotateCharacter(delta);
     }
   }
