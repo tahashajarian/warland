@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { Ground } from './objects/ground';
-import { Man } from './objects/man';
+import { Character } from './objects/character';
 import { Walls } from './objects/walls';
 import Controler from './controler';
 
@@ -55,8 +55,8 @@ class World {
   }
 
   addCamera() {
-    this.camera = new THREE.PerspectiveCamera(20, this.sizes.width / this.sizes.height, 0.1, 1000)
-    this.camera.position.set(0, 5, -40)
+    this.camera = new THREE.PerspectiveCamera(40, this.sizes.width / this.sizes.height, 0.1, 1000)
+    this.camera.position.set(0, 7, -15)
     this.scene.add(this.camera)
   }
 
@@ -101,7 +101,7 @@ class World {
 
   addObjects() {
     this.ground = new Ground(this.scene);
-    this.man = new Man(this, this.scene, this.mixers)
+    this.character = new Character(this, this.scene, this.mixers)
     this.wall = new Walls(this.scene)
 
   }
@@ -113,7 +113,7 @@ class World {
     window.requestAnimationFrame(() => this.update())
     this.stats.update();
     const delta = this.clock.getDelta();
-    this.man.update(delta);
+    this.character.update(delta);
     this.controler.updateDisplay();
     for (let i = 0; i < this.mixers.length; i++) {
       const mixer = this.mixers[i];

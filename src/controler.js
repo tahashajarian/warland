@@ -20,13 +20,20 @@ export default class Controler {
       elemet.innerText = key[0]
       elemet.id = key[0]
       elemet.style.position = 'absolute'
+      elemet.style.cursor = 'pointer'
+      elemet.ontouchstart = () => {
+        this.movement[key[0]] = true
+      }
+      elemet.ontouchend = () => {
+        this.movement[key[0]] = false
+      }
       if (key[0] === 'forward') {
         elemet.style.top = '-60px'
         elemet.style.left = '120px'
       }
       if (key[0] === 'back') {
         elemet.style.top = '20px'
-        elemet.style.left = '130px'
+        elemet.style.left = '135px'
       }
       if (key[0] === 'left') {
         elemet.style.top = '-20px'
@@ -50,6 +57,7 @@ export default class Controler {
     keysContainer.style.left = '60px'
     keysContainer.style.color = 'white'
     keysContainer.style.fontSize = '24px'
+    keysContainer.style.userSelect = 'none'
     // keysContainer.style.position = 'fixed'
     // keysContainer.style.position = 'fixed'
 

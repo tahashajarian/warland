@@ -2,13 +2,20 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import * as THREE from 'three'
 
 
-export class Man {
+export class Character {
   constructor(parrent, scene, mixers) {
     this.parrent = parrent;
     this.scene = scene;
     this.mixers = mixers;
     this.currentAction = 'idle'
-    this.fadeDuration = 0.5
+    this.fadeDuration = 0.2
+    this.rotateAngle = new THREE.Vector3(0, 1, 0)
+    this.walkDirection = new THREE.Vector3()
+    this.rotateQuarternion = new THREE.Quaternion()
+    this.cameraTarget = new THREE.Vector3()
+
+    this.runVelocity = 6
+    this.walkVelocity = 3
     this.init();
   }
 
@@ -43,7 +50,7 @@ export class Man {
       loader.load('run.fbx', (a) => { onLoad('run', a); });
       loader.load('idle.fbx', (a) => { onLoad('idle', a); });
       loader.load('idle2.fbx', (a) => { onLoad('idle2', a); });
-      loader.load('reverse.fbx', (a) => { onLoad('reverse', a); });
+      loader.load('reverse.fbx', (a) => { onLoad('back', a); });
 
       this.scene.add(fbx)
     })
@@ -66,15 +73,21 @@ export class Man {
           this.playAnimation('walk')
         }
       }
-      if (!this.parrent.movement.forward) {
-        this.playAnimation('idle')
+      if (this.parrent.movement.back) {
+        this.playAnimation('back')
       }
 
+      if (!this.parrent.movement.forward && !this.parrent.movement.back) {
+        this.playAnimation('idle')
+      }
+      this.rotateCharacter(delta)
     }
   }
 
   playAnimation(animation) {
     if (animation === this.currentAction) return;
+
+    // play animation
     const toPlay = this.animations[animation].action
     const current = this.animations[this.currentAction].action
 
@@ -82,5 +95,43 @@ export class Man {
     toPlay.reset().fadeIn(this.fadeDuration).play();
 
     this.currentAction = animation
+  }
+
+  rotateCharacter(delta) {
+    // console.log(this.character.position)
+    // if (this.currentAction === 'idle') return;
+    const angleYCameraDirection = Math.atan2(
+      (this.parrent.camera.position.x - this.character.position.x),
+      (this.parrent.camera.position.z - this.character.position.z))
+    this.rotateQuarternion.setFromAxisAngle(this.rotateAngle, angleYCameraDirection + Math.PI)
+    this.character.quaternion.rotateTowards(this.rotateQuarternion, 0.2)
+
+    if (this.currentAction !== 'idle') {
+
+      this.parrent.camera.getWorldDirection(this.walkDirection)
+      this.walkDirection.y = 0
+      this.walkDirection.normalize()
+      this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI)
+      const velocity = this.currentAction == 'run' ? this.runVelocity : this.walkVelocity
+
+      // move model & camera
+      const moveX = this.walkDirection.x * velocity * delta
+      const moveZ = this.walkDirection.z * velocity * delta
+      this.character.position.x -= moveX
+      this.character.position.z -= moveZ
+      this.updateCameraTarget(moveX, moveZ)
+    }
+  }
+
+  updateCameraTarget(moveX, moveZ) {
+    // move camera
+    this.parrent.camera.position.x -= moveX
+    this.parrent.camera.position.z -= moveZ
+
+    // update camera target
+    this.cameraTarget.x = this.character.position.x
+    this.cameraTarget.y = this.character.position.y 
+    this.cameraTarget.z = this.character.position.z
+    this.parrent.controls.target = this.cameraTarget
   }
 }
