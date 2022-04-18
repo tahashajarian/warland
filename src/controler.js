@@ -70,14 +70,26 @@ export default class Controler {
       switch (key) {
         case "KeyW":
           this.movement.forward = true;
+          this.movement.left = false;
+          this.movement.back = false;
+          this.movement.right = false;
           break;
         case "KeyA":
           this.movement.left = true;
+          this.movement.forward = false;
+          this.movement.back = false;
+          this.movement.right = false;
           break;
         case "KeyS":
+          this.movement.left = false;
+          this.movement.forward = false;
           this.movement.back = true;
+          this.movement.right = false;
           break;
         case "KeyD":
+          this.movement.left = false;
+          this.movement.forward = false;
+          this.movement.back = false;
           this.movement.right = true;
           break;
         case "ShiftLeft":

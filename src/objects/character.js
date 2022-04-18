@@ -22,12 +22,22 @@ export class Character {
     const loader = new FBXLoader(this.loadingManager);
     this.animations = [];
     loader.setPath("models/");
-    loader.load("man.fbx", (fbx) => {
-      this.character = fbx;
-      fbx.scale.setScalar(0.02);
-      this.mixer = new THREE.AnimationMixer(fbx);
+    loader.load("man.fbx", (model) => {
+      this.character = model;
+      model.scale.setScalar(0.02);
+      this.mixer = new THREE.AnimationMixer(model);
       this.mixer.addEventListener('finished', () => {
         this.finishedCallback()
+      });
+
+      this.bones = {};
+      this.character.traverse(c => {
+        if (!c.skeleton) {
+          return;
+        }
+        for (let b of c.skeleton.bones) {
+          this.bones[b.name] = b;
+        }
       });
       const onLoad = (animName, anim) => {
         const clip = anim.animations[0];
@@ -38,6 +48,13 @@ export class Character {
           action: action,
         };
       };
+
+      const onLoadShtoGun = (gun) => {
+        console.log(this.bones)
+        // this.bones.mixamorigRightHandRing1.add(gun);
+        this.bones.mixamorigLeftHandThumb3.add(gun);
+        // this.bones.mixamorigRightHandIndex1.add(gun);
+      }
 
 
       loader.load("Rifle Walk.fbx", (a) => {
@@ -64,8 +81,12 @@ export class Character {
       loader.load("Gunplay.fbx", (a) => {
         onLoad("shoot", a);
       });
+      loader.load("shotgun3.fbx", (gun) => {
+        onLoadShtoGun(gun);
+      });
 
-      this.scene.add(fbx);
+      console.log(model)
+      this.scene.add(model);
     });
     this.loadingManager.onLoad = () => {
       this.loaded = true;
@@ -98,7 +119,7 @@ export class Character {
       if (this.parrent.movement.left) {
         this.playAnimation("left");
       }
-      this.rotateCharacter(delta);
+      // this.rotateCharacter(delta);
     }
   }
 
