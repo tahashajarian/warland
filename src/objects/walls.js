@@ -20,10 +20,10 @@ export class Walls {
 
 const wall = (position, rotation) => {
   const wallMat = new THREE.MeshStandardMaterial({
-    roughness: 0.7,
+    // roughness: 0.7,
     color: 0x888888,
-    bumpScale: 0.002,
-    metalness: 0.2
+    // bumpScale: 0.002,
+    // metalness: 0.2
   });
   const textureLoader = new THREE.TextureLoader();
 

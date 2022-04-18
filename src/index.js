@@ -113,10 +113,12 @@ class World {
     const delta = this.clock.getDelta();
     this.character.update(delta);
     this.controler.updateDisplay();
-    for (let i = 0; i < this.mixers.length; i++) {
-      const mixer = this.mixers[i];
-      mixer.update(delta);
+
+    if (this.character.mixer) {
+      this.character.mixer.update(delta);
     }
+
+    this.processClick();
   }
 
   addEventHandler() {
@@ -133,6 +135,27 @@ class World {
       this.renderer.setSize(this.sizes.width, this.sizes.height);
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     });
+    window.addEventListener('pointerup', (e) => {
+      if (!this.clickRequest) {
+        if (
+          Math.abs(this.clickPosition.x - e.clientX) > 4 ||
+          Math.abs(this.clickPosition.y - e.clientY) > 4
+        ) {
+
+        } else {
+          this.clickRequest = true;
+        }
+      }
+    });
+    window.addEventListener('pointerdown', (e) => {
+      this.clickPosition = { x: e.clientX, y: e.clientY }
+    });
+  }
+  processClick() {
+    if (this.clickRequest) {
+      this.character.shoot();
+      this.clickRequest = false
+    }
   }
 }
 

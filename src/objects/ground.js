@@ -118,24 +118,20 @@ export class Ground {
     //   }
     // }
 
-        const floorMaterial = new THREE.MeshStandardMaterial({
-          roughness: 1,
-          // color: 0xffffff,
-          metalness: 0.5,
-          bumpScale: 0.5
-        });
-        textureLoader.load("textures/ground/mud.jpg", function (map) {
-          map.wrapS = THREE.RepeatWrapping;
-          map.wrapT = THREE.RepeatWrapping;
-          map.anisotropy = 4;
-          map.repeat.set(8, 8);
-          // map.rotation = Math.random()
-          // map.rotation = Math.PI / 4;
-          // map.center = new THREE.Vector2(0.5, 0.5);
-          // map.encoding = THREE.sRGBEncoding;
-          floorMaterial.map = map;
-          floorMaterial.needsUpdate = true;
-        });
+    const floorMaterial = new THREE.MeshStandardMaterial({
+    });
+    textureLoader.load("textures/ground/mud.jpg", function (map) {
+      map.wrapS = THREE.RepeatWrapping;
+      map.wrapT = THREE.RepeatWrapping;
+      map.anisotropy = 4;
+      map.repeat.set(8, 8);
+      // map.rotation = Math.random()
+      // map.rotation = Math.PI / 4;
+      // map.center = new THREE.Vector2(0.5, 0.5);
+      // map.encoding = THREE.sRGBEncoding;
+      floorMaterial.map = map;
+      floorMaterial.needsUpdate = true;
+    });
 
     const ground = new THREE.Mesh(new THREE.PlaneBufferGeometry(100, 100), floorMaterial)
     ground.rotation.x = -Math.PI / 2;

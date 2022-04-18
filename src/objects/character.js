@@ -5,7 +5,6 @@ export class Character {
   constructor(parrent, scene, mixers) {
     this.parrent = parrent;
     this.scene = scene;
-    this.mixers = mixers;
     this.currentAction = "idle";
     this.fadeDuration = 0.2;
     this.rotateAngle = new THREE.Vector3(0, 1, 0);
@@ -26,15 +25,13 @@ export class Character {
     loader.load("man.fbx", (fbx) => {
       this.character = fbx;
       fbx.scale.setScalar(0.02);
-      const mixer = new THREE.AnimationMixer(fbx);
-      // loader.load('idle2.fbx', (fbx_a) => {
-      //   console.log(fbx_a)
-      //   mixer.clipAction(fbx_a.animations[0]).play();
-      //   this.mixers.push(mixer);
-      // })
+      this.mixer = new THREE.AnimationMixer(fbx);
+      this.mixer.addEventListener('finished', () => {
+        this.finishedCallback()
+      });
       const onLoad = (animName, anim) => {
         const clip = anim.animations[0];
-        const action = mixer.clipAction(clip);
+        const action = this.mixer.clipAction(clip);
 
         this.animations[animName] = {
           // clip: clip,
@@ -42,7 +39,6 @@ export class Character {
         };
       };
 
-      this.mixers.push(mixer);
 
       loader.load("Rifle Walk.fbx", (a) => {
         onLoad("walk", a);
@@ -59,6 +55,15 @@ export class Character {
       loader.load("Backwards Rifle Walk.fbx", (a) => {
         onLoad("back", a);
       });
+      loader.load("Rifle Side Left.fbx", (a) => {
+        onLoad("left", a);
+      });
+      loader.load("Rifle Side Right.fbx", (a) => {
+        onLoad("right", a);
+      });
+      loader.load("Gunplay.fbx", (a) => {
+        onLoad("shoot", a);
+      });
 
       this.scene.add(fbx);
     });
@@ -68,11 +73,7 @@ export class Character {
     };
   }
   update(delta) {
-    // if (this.loaded) {
-    //   this.animations[this.currentAction].action.play()
-    // }
-
-    if (this.loaded) {
+    if (this.loaded && this.currentAction !== 'shoot') {
       if (this.parrent.movement.forward) {
         if (this.parrent.movement.shift) {
           this.playAnimation("run");
@@ -84,18 +85,18 @@ export class Character {
         this.playAnimation("back");
       }
 
-      if (!this.parrent.movement.forward && !this.parrent.movement.back) {
+      if (
+        !this.parrent.movement.forward &&
+        !this.parrent.movement.back &&
+        !this.parrent.movement.right &&
+        !this.parrent.movement.left) {
         this.playAnimation("idle");
       }
       if (this.parrent.movement.right) {
+        this.playAnimation("right");
       }
       if (this.parrent.movement.left) {
-        // // this.parrent.camera.position.x -= 0.1;
-        // // this.parrent.camera.position.z += 0.1;
-        // const matrix = new THREE.Matrix4();
-        // matrix.makeRotationY((delta * Math.PI) / -4);
-        // // Apply matrix like this to rotate the camera.
-        // this.parrent.camera.position.applyMatrix4(matrix);
+        this.playAnimation("left");
       }
       this.rotateCharacter(delta);
     }
@@ -103,14 +104,14 @@ export class Character {
 
   playAnimation(animation) {
     if (animation === this.currentAction) return;
-
-    // play animation
     const toPlay = this.animations[animation].action;
     const current = this.animations[this.currentAction].action;
-
+    if (animation === 'shoot') {
+      toPlay.setLoop(THREE.LoopOnce, 1);
+      toPlay.clampWhenFinished = true;
+    }
     current.fadeOut(this.fadeDuration);
     toPlay.reset().fadeIn(this.fadeDuration).play();
-
     this.currentAction = animation;
   }
 
@@ -131,25 +132,50 @@ export class Character {
       this.parrent.camera.getWorldDirection(this.walkDirection);
       this.walkDirection.y = 0;
       this.walkDirection.normalize();
-      this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI);
+      // this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI);
       const velocity =
         this.currentAction == "run" ? this.runVelocity : this.walkVelocity;
 
       // move model & camera
-      const moveX = this.walkDirection.x * velocity * delta;
-      const moveZ = this.walkDirection.z * velocity * delta;
+      let moveX = this.walkDirection.x * velocity * delta;
+      let moveZ = this.walkDirection.z * velocity * delta;
       if (this.parrent.movement.forward) {
+        this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI);
+        let moveX = this.walkDirection.x * velocity * delta;
+        let moveZ = this.walkDirection.z * velocity * delta;
         this.character.position.x -= moveX;
         this.character.position.z -= moveZ;
         this.parrent.camera.position.x -= moveX;
         this.parrent.camera.position.z -= moveZ;
-      } else {
+      }
+      if (this.parrent.movement.back) {
+        this.walkDirection.applyAxisAngle(this.rotateAngle, -Math.PI);
+        let moveX = this.walkDirection.x * velocity * delta;
+        let moveZ = this.walkDirection.z * velocity * delta;
         this.character.position.x += moveX / 2;
         this.character.position.z += moveZ / 2;
         this.parrent.camera.position.x += moveX / 2;
         this.parrent.camera.position.z += moveZ / 2;
       }
-      this.updateCameraTarget(moveX, moveZ);
+      if (this.parrent.movement.right) {
+        this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI / 2);
+        let moveX = this.walkDirection.x * velocity * delta;
+        let moveZ = this.walkDirection.z * velocity * delta;
+        this.character.position.x -= moveX / 4;
+        this.character.position.z -= moveZ / 4;
+        this.parrent.camera.position.x -= moveX / 4;
+        this.parrent.camera.position.z -= moveZ / 4;
+      }
+      if (this.parrent.movement.left) {
+        this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI / 2);
+        let moveX = this.walkDirection.x * velocity * delta;
+        let moveZ = this.walkDirection.z * velocity * delta;
+        this.character.position.x += moveX / 4;
+        this.character.position.z += moveZ / 4;
+        this.parrent.camera.position.x += moveX / 4;
+        this.parrent.camera.position.z += moveZ / 4;
+      }
+      this.updateCameraTarget();
     }
   }
 
@@ -160,4 +186,15 @@ export class Character {
     this.cameraTarget.z = this.character.position.z;
     this.parrent.controls.target = this.cameraTarget;
   }
+
+  shoot() {
+    if (this.loaded)
+      this.playAnimation("shoot");
+  }
+
+  finishedCallback() {
+    this.playAnimation("idle");
+
+  }
+
 }
