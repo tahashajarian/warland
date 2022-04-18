@@ -52,7 +52,7 @@ export class Character {
       const onLoadShtoGun = (gun) => {
         console.log(this.bones)
         // this.bones.mixamorigRightHandRing1.add(gun);
-        this.bones.mixamorigLeftHandThumb3.add(gun);
+        this.bones.mixamorigLeftHandThumb1.add(gun);
         // this.bones.mixamorigRightHandIndex1.add(gun);
       }
 
@@ -81,7 +81,7 @@ export class Character {
       loader.load("Gunplay.fbx", (a) => {
         onLoad("shoot", a);
       });
-      loader.load("shotgun3.fbx", (gun) => {
+      loader.load("shotgun.fbx", (gun) => {
         onLoadShtoGun(gun);
       });
 
@@ -119,7 +119,7 @@ export class Character {
       if (this.parrent.movement.left) {
         this.playAnimation("left");
       }
-      // this.rotateCharacter(delta);
+      this.rotateCharacter(delta);
     }
   }
 
