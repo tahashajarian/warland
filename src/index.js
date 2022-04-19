@@ -6,6 +6,8 @@ import { Ground } from "./objects/ground";
 import { Character } from "./objects/character";
 import { Walls } from "./objects/walls";
 import Controler from "./controler";
+import SoundMagnagment from "./sound-managment";
+import Enemy from "./objects/enemy";
 
 class World {
   constructor() {
@@ -18,6 +20,7 @@ class World {
     this.addCamera();
     this.addLight();
     this.addStats();
+    this.addSound();
     this.mixers = [];
     this.addControls();
     this.addEventHandler();
@@ -102,15 +105,25 @@ class World {
     this.ground = new Ground(this.scene);
     this.character = new Character(this, this.scene, this.mixers);
     this.wall = new Walls(this.scene);
+    this.enemy = new Enemy(this.scene)
+
+    setInterval(() => {
+      this.enemy.pawn();
+    }, 500);
+  }
+
+  addSound() {
+    this.soundManagement = new SoundMagnagment(this.camera);
   }
 
   update() {
+    const delta = this.clock.getDelta();
     this.controls.update();
     // const delta = clock.getDelta();
     this.renderer.render(this.scene, this.camera);
     window.requestAnimationFrame(() => this.update());
     this.stats.update();
-    const delta = this.clock.getDelta();
+    this.enemy.update(delta)
     this.character.update(delta);
     this.controler.updateDisplay();
 

@@ -22,9 +22,14 @@ export class Character {
     const loader = new FBXLoader(this.loadingManager);
     this.animations = [];
     loader.setPath("models/");
-    loader.load("man.fbx", (model) => {
+    loader.load("theboss.fbx", (model) => {
       this.character = model;
-      model.scale.setScalar(0.02);
+      this.character.traverse(c => {
+        if (c.material && c.material.map) {
+          c.material.map.encoding = THREE.LinearEncoding;
+        }
+      });
+      this.character.scale.setScalar(0.02);
       this.mixer = new THREE.AnimationMixer(model);
       this.mixer.addEventListener('finished', () => {
         this.finishedCallback()
@@ -52,7 +57,7 @@ export class Character {
       const onLoadShtoGun = (gun) => {
         console.log(this.bones)
         // this.bones.mixamorigRightHandRing1.add(gun);
-        this.bones.mixamorigLeftHandThumb1.add(gun);
+        this.bones.bossLeftHandThumb3.add(gun);
         // this.bones.mixamorigRightHandIndex1.add(gun);
       }
 
@@ -65,9 +70,6 @@ export class Character {
       });
       loader.load("Rifle Idle.fbx", (a) => {
         onLoad("idle", a);
-      });
-      loader.load("idle2.fbx", (a) => {
-        onLoad("idle2", a);
       });
       loader.load("Backwards Rifle Walk.fbx", (a) => {
         onLoad("back", a);
@@ -130,6 +132,7 @@ export class Character {
     if (animation === 'shoot') {
       toPlay.setLoop(THREE.LoopOnce, 1);
       toPlay.clampWhenFinished = true;
+      this.parrent.soundManagement.shoot();
     }
     current.fadeOut(this.fadeDuration);
     toPlay.reset().fadeIn(this.fadeDuration).play();
@@ -209,13 +212,15 @@ export class Character {
   }
 
   shoot() {
-    if (this.loaded)
+    if (this.loaded) {
       this.playAnimation("shoot");
+    }
   }
 
   finishedCallback() {
-    this.playAnimation("idle");
-
+    setTimeout(() => {
+      this.playAnimation("idle");
+    }, 200);
   }
 
 }
