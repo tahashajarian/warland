@@ -7,7 +7,7 @@ export class Walls {
   }
 
   init() {
-    console.log('im working mother fucker')
+    // console.log('im working mother fucker')
     const wall1 = wall([0, 10, 50], Math.PI)
     const wall2 = wall([50, 10, 0], -Math.PI / 2)
     const wall3 = wall([0, 10, -50], 0)
@@ -27,7 +27,7 @@ const wall = (position, rotation) => {
   });
   const textureLoader = new THREE.TextureLoader();
 
-  textureLoader.load("/textures/ground/brick_diffuse.jpg", function (map) {
+  textureLoader.load("textures/ground/brick_diffuse.jpg", function (map) {
     map.wrapS = THREE.RepeatWrapping;
     map.wrapT = THREE.RepeatWrapping;
     map.anisotropy = 4;

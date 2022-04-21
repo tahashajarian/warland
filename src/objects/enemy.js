@@ -170,7 +170,7 @@ export default class Enemy {
   }
 
   finishedCallback(zombieModel) {
-    console.log('zombie model => ', zombieModel)
+    // console.log('zombie model => ', zombieModel)
     zombieModel.clear()
   }
 

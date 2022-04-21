@@ -25,7 +25,7 @@ export default class SoundMagnagment {
 
   shoot() {
     if (this.loaded) {
-      console.log('hree to play sound')
+      // console.log('hree to play sound')
       this.sound.play()
     }
   }

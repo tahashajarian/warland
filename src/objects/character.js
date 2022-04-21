@@ -92,7 +92,7 @@ export class Character {
 
       const onLoadShtoGun = (gun) => {
         this.gun = gun
-        console.log(this.bones)
+        // console.log(this.bones)
         // this.bones.mixamorigRightHandRing1.add(gun);
         this.bones.bossRightHandThumb1.add(gun);
         this.rotateGun()
@@ -126,7 +126,7 @@ export class Character {
         onLoadShtoGun(gun);
       });
 
-      console.log(model)
+      // console.log(model)
       this.scene.add(model);
     });
     this.loadingManager.onLoad = () => {
@@ -136,8 +136,8 @@ export class Character {
   }
 
   rotateGun() {
-    console.log(this.gunRotateAxis, this.gun.rotation)
-    console.log(this.gunPostitionAxis, this.gun.position)
+    // console.log(this.gunRotateAxis, this.gun.rotation)
+    // console.log(this.gunPostitionAxis, this.gun.position)
 
     this.gun.rotation.set(
       this.gunRotateAxis.x,
@@ -326,7 +326,7 @@ export class Character {
       side: THREE.DoubleSide
     })
     const textureLoader = new THREE.TextureLoader();
-    textureLoader.load("/images/aim.png", function (map) {
+    textureLoader.load("images/aim.png", function (map) {
       material.map = map;
       material.needsUpdate = true;
     });
@@ -362,9 +362,9 @@ export class Character {
     geometry.vertices.push(midVec);
     geometry.vertices.push(endVec);
 
-    console.log('vec start', startVec);
-    console.log('vec mid', midVec);
-    console.log('vec end', endVec);
+    // console.log('vec start', startVec);
+    // console.log('vec mid', midVec);
+    // console.log('vec end', endVec);
 
     let line = new THREE.Line(geometry, material);
     this.scene.add(line);
