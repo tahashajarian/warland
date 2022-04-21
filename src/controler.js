@@ -21,12 +21,12 @@ export default class Controler {
       elemet.id = key[0];
       elemet.style.position = "absolute";
       elemet.style.cursor = "pointer";
-      elemet.ontouchstart = () => {
-        this.movement[key[0]] = true;
-      };
-      elemet.ontouchend = () => {
-        this.movement[key[0]] = false;
-      };
+      // elemet.ontouchstart = () => {
+      //   this.movement[key[0]] = true;
+      // };
+      // elemet.ontouchend = () => {
+      //   this.movement[key[0]] = false;
+      // };
       if (key[0] === "forward") {
         elemet.style.top = "-60px";
         elemet.style.left = "120px";

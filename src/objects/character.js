@@ -14,12 +14,46 @@ export class Character {
 
     this.runVelocity = 6;
     this.walkVelocity = 3;
+    this.gunRotateAxis = {
+      "x": 0.91,
+      "y": 3.14,
+      "z": 0.21
+    }
+    this.gunPostitionAxis = {
+      "x": -8.67,
+      "y": 0,
+      "z": 0
+    }
     this.init();
     this.addAim();
+
   }
 
   init() {
+    // this.rotaionGUI = this.parrent.gui.addFolder('rotation')
+    // this.positionGUI = this.parrent.gui.addFolder('postion')
+    // this.rotaionGUI.add(this.gunRotateAxis, 'x').min(-Math.PI).max(Math.PI).step(0.01).onChange((c) => {
+    //   this.rotateGun()
+    // })
+    // this.rotaionGUI.add(this.gunRotateAxis, 'y').min(-Math.PI).max(Math.PI).step(0.01).onChange((c) => {
+    //   this.rotateGun()
+    // })
+    // this.rotaionGUI.add(this.gunRotateAxis, 'z').min(-Math.PI).max(Math.PI).step(0.01).onChange((c) => {
+    //   this.rotateGun()
+    // })
+
+    // this.positionGUI.add(this.gunPostitionAxis, 'x').min(-100).max(100).step(0.01).onChange((c) => {
+    //   this.rotateGun()
+    // })
+    // this.positionGUI.add(this.gunPostitionAxis, 'y').min(-100).max(100).step(0.01).onChange((c) => {
+    //   this.rotateGun()
+    // })
+    // this.positionGUI.add(this.gunPostitionAxis, 'z').min(-100).max(100).step(0.01).onChange((c) => {
+    //   this.rotateGun()
+    // })
+
     this.amiDistance = 15;
+    this.raycaster = new THREE.Raycaster()
     this.loadingManager = new THREE.LoadingManager();
     const loader = new FBXLoader(this.loadingManager);
     this.animations = [];
@@ -57,9 +91,12 @@ export class Character {
       };
 
       const onLoadShtoGun = (gun) => {
+        this.gun = gun
         console.log(this.bones)
         // this.bones.mixamorigRightHandRing1.add(gun);
-        this.bones.bossLeftHandThumb3.add(gun);
+        this.bones.bossRightHandThumb1.add(gun);
+        this.rotateGun()
+
         // this.bones.mixamorigRightHandIndex1.add(gun);
       }
 
@@ -97,8 +134,40 @@ export class Character {
       this.animations[this.currentAction].action.play();
     };
   }
+
+  rotateGun() {
+    console.log(this.gunRotateAxis, this.gun.rotation)
+    console.log(this.gunPostitionAxis, this.gun.position)
+
+    this.gun.rotation.set(
+      this.gunRotateAxis.x,
+      this.gunRotateAxis.y,
+      this.gunRotateAxis.z
+    )
+
+    this.gun.position.x = this.gunPostitionAxis.x
+    this.gun.position.y = this.gunPostitionAxis.y
+    this.gun.position.z = this.gunPostitionAxis.z
+
+    this.gun.scale.setScalar(0.8);
+
+    // this.gun.lookAt(this.aim.position)
+
+  }
+
   update(delta) {
     if (this.loaded && this.currentAction !== 'shoot') {
+      this.raycaster.set(new THREE.Vector3(this.character.position.x, 1, this.character.position.z), new THREE.Vector3(this.parrent.camera.getWorldDirection(this.walkDirection).x, 0, this.parrent.camera.getWorldDirection(this.walkDirection).z).normalize())
+      const intersects = this.raycaster.intersectObjects(this.scene.children);
+
+      this.amiDistance = intersects[0].distance - 0.5
+      // for (let i = 1; i < intersects.length; i++) {
+
+      //   if (intersects[i].distance - 0.5 < this.amiDistance) {
+      //     this.amiDistance = intersects[i].distance - 0.5
+      //   }
+
+      // }
       this.rotateAndMoveAim(delta);
       if (this.parrent.movement.forward) {
         if (this.parrent.movement.shift) {
@@ -133,6 +202,16 @@ export class Character {
     const toPlay = this.animations[animation].action;
     const current = this.animations[this.currentAction].action;
     if (animation === 'shoot') {
+      setTimeout(() => {
+        const intersects = this.raycaster.intersectObjects(this.scene.children);
+        for (let i = 0; i < intersects.length; i++) {
+          if (intersects[i].object.status === 'alive') {
+            if (this.parrent.enemies.zombies[intersects[i].object.myId])
+              this.parrent.enemies.zombies[intersects[i].object.myId].status = 'dead'
+            this.scene.remove(intersects[i].object)
+          }
+        }
+      }, 1500);
       toPlay.setLoop(THREE.LoopOnce, 1);
       toPlay.clampWhenFinished = true;
       this.parrent.soundManagement.shoot();
@@ -147,10 +226,10 @@ export class Character {
     // this.aim.position.set(this.character.position.x, 2.5, this.character.position.z + 10)
     const y = this.character.rotation.y
     if (this.character.rotation.x < 0) {
-      this.aim.position.x = Math.sin(Math.abs(y - Math.PI / 2) + Math.PI / 2) * this.amiDistance + this.character.position.x - 2;
+      this.aim.position.x = Math.sin(Math.abs(y - Math.PI / 2) + Math.PI / 2) * this.amiDistance + this.character.position.x;
       this.aim.position.z = Math.cos(Math.abs(y - Math.PI / 2) + Math.PI / 2) * this.amiDistance + this.character.position.z;
     } else {
-      this.aim.position.x = Math.sin(y) * this.amiDistance + this.character.position.x + 2;
+      this.aim.position.x = Math.sin(y) * this.amiDistance + this.character.position.x;
       this.aim.position.z = Math.cos(y) * this.amiDistance + this.character.position.z;
     }
   }
@@ -227,14 +306,16 @@ export class Character {
 
   shoot() {
     if (this.loaded) {
+
+      // this.drawRaycastLine(this.raycaster)
+
+
       this.playAnimation("shoot");
     }
   }
 
   finishedCallback() {
-    setTimeout(() => {
-      this.playAnimation("idle");
-    }, 200);
+    this.playAnimation("idle");
   }
 
 
@@ -250,8 +331,43 @@ export class Character {
       material.needsUpdate = true;
     });
     this.aim = new THREE.Mesh(geo, material);
-    this.aim.position.set(0, 2.5, 5)
+    this.aim.position.set(0, 2.1, 5)
     this.scene.add(this.aim)
+  }
+
+  drawRaycastLine(raycaster) {
+    let material = new THREE.LineBasicMaterial({
+      color: 0xff0000,
+      linewidth: 2
+    });
+    let geometry = new THREE.Geometry();
+    let startVec = new THREE.Vector3(
+      raycaster.ray.origin.x,
+      raycaster.ray.origin.y,
+      raycaster.ray.origin.z);
+
+    let endVec = new THREE.Vector3(
+      raycaster.ray.direction.x,
+      raycaster.ray.direction.y,
+      raycaster.ray.direction.z);
+
+    // could be any number
+    endVec.multiplyScalar(5000);
+
+    // get the point in the middle
+    let midVec = new THREE.Vector3();
+    midVec.lerpVectors(startVec, endVec, 0.5);
+
+    geometry.vertices.push(startVec);
+    geometry.vertices.push(midVec);
+    geometry.vertices.push(endVec);
+
+    console.log('vec start', startVec);
+    console.log('vec mid', midVec);
+    console.log('vec end', endVec);
+
+    let line = new THREE.Line(geometry, material);
+    this.scene.add(line);
   }
 
 }

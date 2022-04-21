@@ -17,14 +17,15 @@ export default class SoundMagnagment {
     this.audioLoader.load('fire.mp3', (buffer) => {
       this.soundes['fire'] = buffer
       this.loaded = true
+      this.sound.setBuffer(this.soundes.fire);
+      this.sound.setVolume(0.1);
     });
 
   }
 
   shoot() {
     if (this.loaded) {
-      this.sound.setBuffer(this.soundes.fire);
-      this.sound.setVolume(0.1);
+      console.log('hree to play sound')
       this.sound.play()
     }
   }

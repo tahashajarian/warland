@@ -8,6 +8,8 @@ import { Walls } from "./objects/walls";
 import Controler from "./controler";
 import SoundMagnagment from "./sound-managment";
 import Enemy from "./objects/enemy";
+import * as dat from 'dat.gui'
+
 
 class World {
   constructor() {
@@ -22,6 +24,7 @@ class World {
     this.addStats();
     this.addSound();
     this.mixers = [];
+    this.gui = new dat.GUI()
     this.addControls();
     this.addEventHandler();
     this.addObjects();
@@ -105,11 +108,11 @@ class World {
     this.ground = new Ground(this.scene);
     this.character = new Character(this, this.scene, this.mixers);
     this.wall = new Walls(this.scene);
-    this.enemy = new Enemy(this, this.scene)
+    this.enemies = new Enemy(this, this.scene)
 
     setInterval(() => {
-      this.enemy.pawn();
-    }, 500);
+      this.enemies.pawn();
+    }, 10);
   }
 
   addSound() {
@@ -123,7 +126,7 @@ class World {
     this.renderer.render(this.scene, this.camera);
     window.requestAnimationFrame(() => this.update());
     this.stats.update();
-    this.enemy.update(delta)
+    this.enemies.update(delta)
     this.character.update(delta);
     this.controler.updateDisplay();
 
