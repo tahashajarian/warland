@@ -110,6 +110,7 @@ class World {
   addLoadingManager() {
 
     const loadingBarElement = document.querySelector('.loading-bar')
+    const loadingBarElementHelp = document.querySelector('.help')
     this.loadingManager = new THREE.LoadingManager();
     this.loadingManager.onProgress = (itemUrl, itemsLoaded, itemsTotal) => {
       // Calculate the progress and update the loadingBarElement
@@ -128,6 +129,7 @@ class World {
 
         // Update loadingBarElement
         loadingBarElement.classList.add('ended')
+        loadingBarElementHelp.classList.add('ended')
         loadingBarElement.style.transform = ''
       }, 500)
     }

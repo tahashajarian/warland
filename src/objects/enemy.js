@@ -13,6 +13,7 @@ export default class Enemy {
     this.parent = parent
     this.rotateAngle = new THREE.Vector3(0, 1, 0);
     this.enemyCount = 0;
+    this.maxZomies = 50
     this.init()
   }
 
@@ -112,7 +113,7 @@ export default class Enemy {
   }
 
   pawn() {
-    if (this.parent.loaded && this.zombies.length < 50) {
+    if (this.parent.loaded && this.zombies.length < this.maxZomies) {
       const zombie = {}
       this.enemyCount += 1
       zombie.model = SkeletonUtils.clone(this.enemy);
@@ -168,8 +169,9 @@ export default class Enemy {
 
   finishedCallback(zombieModel, index) {
     // console.log('zombie model => ', zombieModel)
-    this.zombies.splice(index, 1)
+    // this.zombies.splice(index, 1)
     this.scene.remove(zombieModel)
+    this.maxZomies += 1
   }
 
 }

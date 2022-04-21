@@ -161,7 +161,7 @@ export class Character {
       this.raycaster.set(new THREE.Vector3(this.character.position.x, 1, this.character.position.z), new THREE.Vector3(this.parent.camera.getWorldDirection(this.walkDirection).x, 0, this.parent.camera.getWorldDirection(this.walkDirection).z).normalize())
       const intersects = this.raycaster.intersectObjects(this.scene.children);
 
-      if (intersects[0] && intersects[0].distance)
+      // if (intersects[0] && intersects[0].distance)
         this.amiDistance = intersects[0].distance - 0.5
       // for (let i = 1; i < intersects.length; i++) {
 
@@ -208,8 +208,8 @@ export class Character {
         const intersects = this.raycaster.intersectObjects(this.scene.children);
         for (let i = 0; i < intersects.length; i++) {
           if (intersects[i].object.status === 'alive') {
-            const id = intersects[i].object.myId
             const zombies = this.parent.enemies.zombies
+            const id = intersects[i].object.myId
             const dead = zombies.find(zombie => zombie.myId === id);
             if (dead) {
               dead.status = 'dead'
