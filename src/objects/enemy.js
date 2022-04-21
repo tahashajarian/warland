@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 import { randomNumber } from '../random-between';
 
@@ -13,16 +12,15 @@ export default class Enemy {
     this.fadeDuration = 0.2
     this.parent = parent
     this.rotateAngle = new THREE.Vector3(0, 1, 0);
+    this.enemyCount = 0;
     this.init()
   }
 
   init() {
     this.planeMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 8, 3), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.01 }))
-    this.loadingManager = new THREE.LoadingManager();
-    const loader = new FBXLoader(this.loadingManager);
     this.animations = [];
-    loader.setPath("models/");
-    loader.load("zambia.fbx", (model) => {
+    // this.parent.fbxLoader.setPath("");
+    this.parent.fbxLoader.load("zambia.fbx", (model) => {
       this.enemy = model;
       // this.enemy.traverse(c => {
       //   console.log('from enemy => ', c)
@@ -56,46 +54,44 @@ export default class Enemy {
       // }
 
 
-      loader.load("walking-zambia.fbx", (anim) => {
+      this.parent.fbxLoader.load("walking-zambia.fbx", (anim) => {
         this.walkingClip = anim.animations[0];
       });
 
-      loader.load("zombia-die.fbx", (anim) => {
+      this.parent.fbxLoader.load("zombia-die.fbx", (anim) => {
         this.dieClip = anim.animations[0];
       });
-      // loader.load("Rifle Run.fbx", (a) => {
+      // this.parent.fbxLoader.load("Rifle Run.fbx", (a) => {
       //   onLoad("run", a);
       // });
-      // loader.load("Rifle Idle.fbx", (a) => {
+      // this.parent.fbxLoader.load("Rifle Idle.fbx", (a) => {
       //   onLoad("idle", a);
       // });
-      // loader.load("Backwards Rifle Walk.fbx", (a) => {
+      // this.parent.fbxLoader.load("Backwards Rifle Walk.fbx", (a) => {
       //   onLoad("back", a);
       // });
-      // loader.load("Rifle Side Left.fbx", (a) => {
+      // this.parent.fbxLoader.load("Rifle Side Left.fbx", (a) => {
       //   onLoad("left", a);
       // });
-      // loader.load("Rifle Side Right.fbx", (a) => {
+      // this.parent.fbxLoader.load("Rifle Side Right.fbx", (a) => {
       //   onLoad("right", a);
       // });
-      // loader.load("Gunplay.fbx", (a) => {
+      // this.parent.fbxLoader.load("Gunplay.fbx", (a) => {
       //   onLoad("shoot", a);
       // });
-      // loader.load("shotgun.fbx", (gun) => {
+      // this.parent.fbxLoader.load("shotgun.fbx", (gun) => {
       //   onLoadShtoGun(gun);
       // });
 
       //   console.log(model)
       //   this.scene.add(model);
     });
-    this.loadingManager.onLoad = () => {
-      this.loaded = true;
-    };
+
   }
 
   update(delta) {
-    if (this.loaded) {
-      this.zombies.forEach(zombie => {
+    if (this.parent.loaded) {
+      this.zombies.forEach((zombie, index) => {
         zombie.mixer.update(delta)
         if (zombie.status === 'alive') {
           zombie.model.lookAt(this.parent.character.character.position);
@@ -109,15 +105,16 @@ export default class Enemy {
           zombie.planeMesh.position.x += Math.sin(angle) * .45 * delta;
           zombie.planeMesh.position.z += Math.cos(angle) * .45 * delta;
         } else if (zombie.status !== 'finish') {
-          this.playAnimationDie(zombie)
+          this.playAnimationDie(zombie, index)
         }
       })
     }
   }
 
   pawn() {
-    if (this.loaded && this.zombies.length < 10) {
+    if (this.parent.loaded && this.zombies.length < 100) {
       const zombie = {}
+      this.enemyCount += 1
       zombie.model = SkeletonUtils.clone(this.enemy);
       zombie.walkAnim = this.walkingClip.clone();
       zombie.dieAnim = this.dieClip.clone();
@@ -127,8 +124,8 @@ export default class Enemy {
       zombie.planeMesh = this.planeMesh.clone();
       zombie.planeMesh.status = 'alive'
       zombie.status = 'alive'
-      zombie.planeMesh.myId = this.zombies.length
-      zombie.model.myId = this.zombies.length
+      zombie.planeMesh.myId = this.enemyCount
+      zombie.myId = this.enemyCount
       zombie.walkAction.fadeIn(this.fadeDuration).play();
       if (Math.random() < 0.5) {
         const random = Math.random()
@@ -156,7 +153,7 @@ export default class Enemy {
   }
 
 
-  playAnimationDie(zobmie) {
+  playAnimationDie(zobmie, index) {
     // console.log('zobmie to die ', zobmie)
     zobmie.walkAction.fadeOut(this.fadeDuration);
     zobmie.dieAction.setLoop(THREE.LoopOnce, 1);
@@ -165,13 +162,14 @@ export default class Enemy {
     zobmie.dieAction.reset().fadeIn(this.fadeDuration).play();
     zobmie.status = 'finish'
     zobmie.mixer.addEventListener('finished', () => {
-      this.finishedCallback(zobmie.model)
+      this.finishedCallback(zobmie.model, index)
     });
   }
 
-  finishedCallback(zombieModel) {
+  finishedCallback(zombieModel, index) {
     // console.log('zombie model => ', zombieModel)
-    zombieModel.clear()
+    this.zombies.splice(index, 1)
+    this.scene.remove(zombieModel)
   }
 
 }

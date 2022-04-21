@@ -1,9 +1,8 @@
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import * as THREE from "three";
 
 export class Character {
-  constructor(parrent, scene, mixers) {
-    this.parrent = parrent;
+  constructor(parent, scene, mixers) {
+    this.parent = parent;
     this.scene = scene;
     this.currentAction = "idle";
     this.fadeDuration = 0.2;
@@ -30,8 +29,8 @@ export class Character {
   }
 
   init() {
-    // this.rotaionGUI = this.parrent.gui.addFolder('rotation')
-    // this.positionGUI = this.parrent.gui.addFolder('postion')
+    // this.rotaionGUI = this.parent.gui.addFolder('rotation')
+    // this.positionGUI = this.parent.gui.addFolder('postion')
     // this.rotaionGUI.add(this.gunRotateAxis, 'x').min(-Math.PI).max(Math.PI).step(0.01).onChange((c) => {
     //   this.rotateGun()
     // })
@@ -54,11 +53,8 @@ export class Character {
 
     this.amiDistance = 15;
     this.raycaster = new THREE.Raycaster()
-    this.loadingManager = new THREE.LoadingManager();
-    const loader = new FBXLoader(this.loadingManager);
     this.animations = [];
-    loader.setPath("models/");
-    loader.load("theboss.fbx", (model) => {
+    this.parent.fbxLoader.load("theboss.fbx", (model) => {
       this.character = model;
       this.character.traverse(c => {
         if (c.material && c.material.map) {
@@ -101,38 +97,38 @@ export class Character {
       }
 
 
-      loader.load("Rifle Walk.fbx", (a) => {
+      this.parent.fbxLoader.load("Rifle Walk.fbx", (a) => {
         onLoad("walk", a);
       });
-      loader.load("Rifle Run.fbx", (a) => {
+      this.parent.fbxLoader.load("Rifle Run.fbx", (a) => {
         onLoad("run", a);
       });
-      loader.load("Rifle Idle.fbx", (a) => {
+      this.parent.fbxLoader.load("Rifle Idle.fbx", (a) => {
         onLoad("idle", a);
       });
-      loader.load("Backwards Rifle Walk.fbx", (a) => {
+      this.parent.fbxLoader.load("Backwards Rifle Walk.fbx", (a) => {
         onLoad("back", a);
       });
-      loader.load("Rifle Side Left.fbx", (a) => {
+      this.parent.fbxLoader.load("Rifle Side Left.fbx", (a) => {
         onLoad("left", a);
       });
-      loader.load("Rifle Side Right.fbx", (a) => {
+      this.parent.fbxLoader.load("Rifle Side Right.fbx", (a) => {
         onLoad("right", a);
       });
-      loader.load("Gunplay.fbx", (a) => {
+      this.parent.fbxLoader.load("Gunplay.fbx", (a) => {
         onLoad("shoot", a);
       });
-      loader.load("shotgun.fbx", (gun) => {
+      this.parent.fbxLoader.load("shotgun.fbx", (gun) => {
         onLoadShtoGun(gun);
       });
 
       // console.log(model)
       this.scene.add(model);
     });
-    this.loadingManager.onLoad = () => {
-      this.loaded = true;
-      this.animations[this.currentAction].action.play();
-    };
+    // this.parent.loadingManager.onLoad = () => {
+    //   this.parent.loaded = true;
+    //   this.animations[this.currentAction].action.play();
+    // };
   }
 
   rotateGun() {
@@ -155,12 +151,18 @@ export class Character {
 
   }
 
+
+  start() {
+    this.animations[this.currentAction].action.play();
+  }
+
   update(delta) {
-    if (this.loaded && this.currentAction !== 'shoot') {
-      this.raycaster.set(new THREE.Vector3(this.character.position.x, 1, this.character.position.z), new THREE.Vector3(this.parrent.camera.getWorldDirection(this.walkDirection).x, 0, this.parrent.camera.getWorldDirection(this.walkDirection).z).normalize())
+    if (this.parent.loaded && this.currentAction !== 'shoot') {
+      this.raycaster.set(new THREE.Vector3(this.character.position.x, 1, this.character.position.z), new THREE.Vector3(this.parent.camera.getWorldDirection(this.walkDirection).x, 0, this.parent.camera.getWorldDirection(this.walkDirection).z).normalize())
       const intersects = this.raycaster.intersectObjects(this.scene.children);
 
-      this.amiDistance = intersects[0].distance - 0.5
+      if (intersects[0] && intersects[0].distance)
+        this.amiDistance = intersects[0].distance - 0.5
       // for (let i = 1; i < intersects.length; i++) {
 
       //   if (intersects[i].distance - 0.5 < this.amiDistance) {
@@ -169,28 +171,28 @@ export class Character {
 
       // }
       this.rotateAndMoveAim(delta);
-      if (this.parrent.movement.forward) {
-        if (this.parrent.movement.shift) {
+      if (this.parent.movement.forward) {
+        if (this.parent.movement.shift) {
           this.playAnimation("run");
         } else {
           this.playAnimation("walk");
         }
       }
-      if (this.parrent.movement.back) {
+      if (this.parent.movement.back) {
         this.playAnimation("back");
       }
 
       if (
-        !this.parrent.movement.forward &&
-        !this.parrent.movement.back &&
-        !this.parrent.movement.right &&
-        !this.parrent.movement.left) {
+        !this.parent.movement.forward &&
+        !this.parent.movement.back &&
+        !this.parent.movement.right &&
+        !this.parent.movement.left) {
         this.playAnimation("idle");
       }
-      if (this.parrent.movement.right) {
+      if (this.parent.movement.right) {
         this.playAnimation("right");
       }
-      if (this.parrent.movement.left) {
+      if (this.parent.movement.left) {
         this.playAnimation("left");
       }
       this.rotateCharacter(delta);
@@ -206,15 +208,19 @@ export class Character {
         const intersects = this.raycaster.intersectObjects(this.scene.children);
         for (let i = 0; i < intersects.length; i++) {
           if (intersects[i].object.status === 'alive') {
-            if (this.parrent.enemies.zombies[intersects[i].object.myId])
-              this.parrent.enemies.zombies[intersects[i].object.myId].status = 'dead'
-            this.scene.remove(intersects[i].object)
+            const id = intersects[i].object.myId
+            const zombies = this.parent.enemies.zombies
+            const dead = zombies.find(zombie => zombie.myId === id);
+            if (dead) {
+              dead.status = 'dead'
+              this.scene.remove(intersects[i].object)
+            }
           }
         }
       }, 1500);
       toPlay.setLoop(THREE.LoopOnce, 1);
       toPlay.clampWhenFinished = true;
-      this.parrent.soundManagement.shoot();
+      this.parent.soundManagement.shoot();
     }
     current.fadeOut(this.fadeDuration);
     toPlay.reset().fadeIn(this.fadeDuration).play();
@@ -238,8 +244,8 @@ export class Character {
     // console.log(this.character.position)
     // if (this.currentAction === 'idle') return;
     const angleYCameraDirection = Math.atan2(
-      this.parrent.camera.position.x - this.character.position.x,
-      this.parrent.camera.position.z - this.character.position.z
+      this.parent.camera.position.x - this.character.position.x,
+      this.parent.camera.position.z - this.character.position.z
     );
     this.rotateQuarternion.setFromAxisAngle(
       this.rotateAngle,
@@ -248,7 +254,7 @@ export class Character {
     this.character.quaternion.rotateTowards(this.rotateQuarternion, 0.2);
 
     if (this.currentAction !== "idle") {
-      this.parrent.camera.getWorldDirection(this.walkDirection);
+      this.parent.camera.getWorldDirection(this.walkDirection);
       this.walkDirection.y = 0;
       this.walkDirection.normalize();
       // this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI);
@@ -256,41 +262,41 @@ export class Character {
         this.currentAction == "run" ? this.runVelocity : this.walkVelocity;
 
       // move model & camera
-      if (this.parrent.movement.forward) {
+      if (this.parent.movement.forward) {
         this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI);
         let moveX = this.walkDirection.x * velocity * delta;
         let moveZ = this.walkDirection.z * velocity * delta;
         this.character.position.x -= moveX;
         this.character.position.z -= moveZ;
-        this.parrent.camera.position.x -= moveX;
-        this.parrent.camera.position.z -= moveZ;
+        this.parent.camera.position.x -= moveX;
+        this.parent.camera.position.z -= moveZ;
       }
-      if (this.parrent.movement.back) {
+      if (this.parent.movement.back) {
         this.walkDirection.applyAxisAngle(this.rotateAngle, -Math.PI);
         let moveX = this.walkDirection.x * velocity * delta;
         let moveZ = this.walkDirection.z * velocity * delta;
         this.character.position.x += moveX / 2;
         this.character.position.z += moveZ / 2;
-        this.parrent.camera.position.x += moveX / 2;
-        this.parrent.camera.position.z += moveZ / 2;
+        this.parent.camera.position.x += moveX / 2;
+        this.parent.camera.position.z += moveZ / 2;
       }
-      if (this.parrent.movement.right) {
+      if (this.parent.movement.right) {
         this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI / 2);
         let moveX = this.walkDirection.x * velocity * delta;
         let moveZ = this.walkDirection.z * velocity * delta;
         this.character.position.x -= moveX / 4;
         this.character.position.z -= moveZ / 4;
-        this.parrent.camera.position.x -= moveX / 4;
-        this.parrent.camera.position.z -= moveZ / 4;
+        this.parent.camera.position.x -= moveX / 4;
+        this.parent.camera.position.z -= moveZ / 4;
       }
-      if (this.parrent.movement.left) {
+      if (this.parent.movement.left) {
         this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI / 2);
         let moveX = this.walkDirection.x * velocity * delta;
         let moveZ = this.walkDirection.z * velocity * delta;
         this.character.position.x += moveX / 4;
         this.character.position.z += moveZ / 4;
-        this.parrent.camera.position.x += moveX / 4;
-        this.parrent.camera.position.z += moveZ / 4;
+        this.parent.camera.position.x += moveX / 4;
+        this.parent.camera.position.z += moveZ / 4;
       }
       this.updateCameraTarget();
     }
@@ -301,11 +307,11 @@ export class Character {
     this.cameraTarget.x = this.character.position.x;
     this.cameraTarget.y = this.character.position.y;
     this.cameraTarget.z = this.character.position.z;
-    this.parrent.controls.target = this.cameraTarget;
+    this.parent.controls.target = this.cameraTarget;
   }
 
   shoot() {
-    if (this.loaded) {
+    if (this.parent.loaded) {
 
       // this.drawRaycastLine(this.raycaster)
 
@@ -325,8 +331,8 @@ export class Character {
       transparent: true,
       side: THREE.DoubleSide
     })
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.load("images/aim.png", function (map) {
+
+    this.parent.textureLoader.load("images/aim.png", function (map) {
       material.map = map;
       material.needsUpdate = true;
     });

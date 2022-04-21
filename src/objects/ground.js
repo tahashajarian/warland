@@ -1,15 +1,16 @@
 import * as THREE from 'three'
 
 export class Ground {
-  constructor(scene) {
+  constructor(parent, scene) {
     this.scene = scene
+    this.parent = parent
     this.init();
 
   }
   init() {
 
 
-    const textureLoader = new THREE.TextureLoader();
+    const textureLoader = new THREE.TextureLoader(this.parent.loadingManager);
 
 
 

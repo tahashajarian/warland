@@ -9,6 +9,10 @@ import Controler from "./controler";
 import SoundMagnagment from "./sound-managment";
 import Enemy from "./objects/enemy";
 import * as dat from 'dat.gui'
+import { gsap } from 'gsap'
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+
+
 
 
 class World {
@@ -17,8 +21,10 @@ class World {
   }
 
   init() {
+    this.addLoadingManager()
     this.addRenderer();
     this.addScene();
+    this.addOverlay()
     this.addCamera();
     this.addLight();
     this.addStats();
@@ -100,19 +106,77 @@ class World {
     // this.controls.maxPolarAngle = Math.PI * 0.5 - 0.01;
   }
 
+
+  addLoadingManager() {
+
+    const loadingBarElement = document.querySelector('.loading-bar')
+    this.loadingManager = new THREE.LoadingManager();
+    this.loadingManager.onProgress = (itemUrl, itemsLoaded, itemsTotal) => {
+      // Calculate the progress and update the loadingBarElement
+      const progressRatio = itemsLoaded / itemsTotal
+      loadingBarElement.style.transform = `scaleX(${progressRatio})`
+    }
+    this.loadingManager.onLoad = (e) => {
+      console.log('loaded all asset')
+      // Wait a little
+      window.setTimeout(() => {
+
+        this.loaded = true;
+        this.character.start();
+        // Animate overlay
+        gsap.to(this.overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0, delay: 1 })
+
+        // Update loadingBarElement
+        loadingBarElement.classList.add('ended')
+        loadingBarElement.style.transform = ''
+      }, 500)
+    }
+
+    this.fbxLoader = new FBXLoader(this.loadingManager);
+    this.fbxLoader.setPath("models/");
+    this.textureLoader = new THREE.TextureLoader(this.loadingManager);
+  }
+
   addSky() {
     this.scene.background = 0xffff99;
   }
+  addOverlay() {
+    const overlayGeometry = new THREE.PlaneBufferGeometry(2, 2, 1, 1)
+    this.overlayMaterial = new THREE.ShaderMaterial({
+      // wireframe: true,
+      transparent: true,
+      uniforms:
+      {
+        uAlpha: { value: 1 }
+      },
+      vertexShader: `
+        void main()
+        {
+            gl_Position = vec4(position, 1.0);
+        }
+    `,
+      fragmentShader: `
+        uniform float uAlpha;
+
+        void main()
+        {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, uAlpha);
+        }
+    `
+    })
+    const overlay = new THREE.Mesh(overlayGeometry, this.overlayMaterial)
+    this.scene.add(overlay)
+  }
 
   addObjects() {
-    this.ground = new Ground(this.scene);
+    this.ground = new Ground(this, this.scene);
     this.character = new Character(this, this.scene, this.mixers);
-    this.wall = new Walls(this.scene);
+    this.wall = new Walls(this, this.scene);
     this.enemies = new Enemy(this, this.scene)
 
     setInterval(() => {
       this.enemies.pawn();
-    }, 10);
+    }, 1000);
   }
 
   addSound() {
