@@ -216,6 +216,9 @@ class World {
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     });
     window.addEventListener('pointerup', (e) => {
+
+ 
+
       if (!this.clickRequest) {
         if (
           Math.abs(this.clickPosition.x - e.clientX) > 4 ||

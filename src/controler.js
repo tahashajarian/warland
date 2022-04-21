@@ -21,7 +21,7 @@ export default class Controler {
       elemet.id = key[0];
       elemet.style.position = "absolute";
       elemet.style.cursor = "pointer";
-      elemet.style.opacity = 0.3;
+      elemet.style.opacity = 0.5;
 
       // elemet.ontouchstart = () => {
       //   this.movement[key[0]] = true;

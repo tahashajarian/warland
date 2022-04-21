@@ -112,7 +112,7 @@ export default class Enemy {
   }
 
   pawn() {
-    if (this.parent.loaded && this.zombies.length < 100) {
+    if (this.parent.loaded && this.zombies.length < 50) {
       const zombie = {}
       this.enemyCount += 1
       zombie.model = SkeletonUtils.clone(this.enemy);
