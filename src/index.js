@@ -105,7 +105,7 @@ class World {
     this.ground = new Ground(this.scene);
     this.character = new Character(this, this.scene, this.mixers);
     this.wall = new Walls(this.scene);
-    this.enemy = new Enemy(this.scene)
+    this.enemy = new Enemy(this, this.scene)
 
     setInterval(() => {
       this.enemy.pawn();

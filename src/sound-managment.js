@@ -24,7 +24,7 @@ export default class SoundMagnagment {
   shoot() {
     if (this.loaded) {
       this.sound.setBuffer(this.soundes.fire);
-      this.sound.setVolume(1);
+      this.sound.setVolume(0.1);
       this.sound.play()
     }
   }

@@ -15,9 +15,11 @@ export class Character {
     this.runVelocity = 6;
     this.walkVelocity = 3;
     this.init();
+    this.addAim();
   }
 
   init() {
+    this.amiDistance = 15;
     this.loadingManager = new THREE.LoadingManager();
     const loader = new FBXLoader(this.loadingManager);
     this.animations = [];
@@ -97,6 +99,7 @@ export class Character {
   }
   update(delta) {
     if (this.loaded && this.currentAction !== 'shoot') {
+      this.rotateAndMoveAim(delta);
       if (this.parrent.movement.forward) {
         if (this.parrent.movement.shift) {
           this.playAnimation("run");
@@ -139,6 +142,19 @@ export class Character {
     this.currentAction = animation;
   }
 
+  rotateAndMoveAim(delta) {
+    this.aim.lookAt(new THREE.Vector3(this.character.position.x, 2, this.character.position.z))
+    // this.aim.position.set(this.character.position.x, 2.5, this.character.position.z + 10)
+    const y = this.character.rotation.y
+    if (this.character.rotation.x < 0) {
+      this.aim.position.x = Math.sin(Math.abs(y - Math.PI / 2) + Math.PI / 2) * this.amiDistance + this.character.position.x - 2;
+      this.aim.position.z = Math.cos(Math.abs(y - Math.PI / 2) + Math.PI / 2) * this.amiDistance + this.character.position.z;
+    } else {
+      this.aim.position.x = Math.sin(y) * this.amiDistance + this.character.position.x + 2;
+      this.aim.position.z = Math.cos(y) * this.amiDistance + this.character.position.z;
+    }
+  }
+
   rotateCharacter(delta) {
     // console.log(this.character.position)
     // if (this.currentAction === 'idle') return;
@@ -161,8 +177,6 @@ export class Character {
         this.currentAction == "run" ? this.runVelocity : this.walkVelocity;
 
       // move model & camera
-      let moveX = this.walkDirection.x * velocity * delta;
-      let moveZ = this.walkDirection.z * velocity * delta;
       if (this.parrent.movement.forward) {
         this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI);
         let moveX = this.walkDirection.x * velocity * delta;
@@ -221,6 +235,23 @@ export class Character {
     setTimeout(() => {
       this.playAnimation("idle");
     }, 200);
+  }
+
+
+  addAim() {
+    const geo = new THREE.PlaneBufferGeometry(1, 1);
+    const material = new THREE.MeshBasicMaterial({
+      transparent: true,
+      side: THREE.DoubleSide
+    })
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load("/images/aim.png", function (map) {
+      material.map = map;
+      material.needsUpdate = true;
+    });
+    this.aim = new THREE.Mesh(geo, material);
+    this.aim.position.set(0, 2.5, 5)
+    this.scene.add(this.aim)
   }
 
 }
