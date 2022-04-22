@@ -59,5 +59,15 @@ body {
 }
 
 .help.ended {
-    display: none;
+  display: none;
+}
+
+.score-board {
+  white-space: nowrap;
+  position: fixed;
+  color: white;
+  right: 50px;
+  bottom: 20px;
+  font-size: 24pt;
+  z-index: 20;
 }

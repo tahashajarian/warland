@@ -1,11 +1,13 @@
 export default class Controler {
-  constructor() {
+  constructor(parent) {
+    this.parent = parent
     this.movement = {
       shift: false,
       forward: false,
       left: false,
       right: false,
       back: false,
+      pause: false,
     };
     this.initDisplay();
     this.initListener();
@@ -21,7 +23,7 @@ export default class Controler {
       elemet.id = key[0];
       elemet.style.position = "absolute";
       elemet.style.cursor = "pointer";
-      elemet.style.opacity = 0.5;
+      elemet.style.opacity = 0.75;
 
       // elemet.ontouchstart = () => {
       //   this.movement[key[0]] = true;
@@ -51,6 +53,11 @@ export default class Controler {
         elemet.style.left = "-20px";
       }
 
+      if (key[0] === "pause") {
+        elemet.style.top = "-20px";
+        elemet.style.left = "280px";
+      }
+
       elemet.style.padding = "10px";
       keysContainer.append(elemet);
     });
@@ -72,27 +79,27 @@ export default class Controler {
       switch (key) {
         case "KeyW":
           this.movement.forward = true;
-          this.movement.left = false;
-          this.movement.back = false;
-          this.movement.right = false;
+          // this.movement.left = false;
+          // this.movement.back = false;
+          // this.movement.right = false;
           break;
         case "KeyA":
           this.movement.left = true;
-          this.movement.forward = false;
-          this.movement.back = false;
-          this.movement.right = false;
+          // this.movement.forward = false;
+          // this.movement.back = false;
+          // this.movement.right = false;
           break;
         case "KeyS":
-          this.movement.left = false;
-          this.movement.forward = false;
           this.movement.back = true;
-          this.movement.right = false;
+          // this.movement.left = false;
+          // this.movement.forward = false;
+          // this.movement.right = false;
           break;
         case "KeyD":
-          this.movement.left = false;
-          this.movement.forward = false;
-          this.movement.back = false;
           this.movement.right = true;
+          // this.movement.left = false;
+          // this.movement.forward = false;
+          // this.movement.back = false;
           break;
         case "ShiftLeft":
           this.movement.shift = true;
@@ -119,6 +126,16 @@ export default class Controler {
           break;
         case "ShiftLeft":
           this.movement.shift = false;
+          break;
+
+        case "Escape":
+          if (this.movement.pause) {
+            this.movement.pause = false;
+            this.parent.update()
+          } else {
+            this.movement.pause = true;
+          }
+          this.updateDisplay();
           break;
 
         default:

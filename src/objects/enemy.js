@@ -23,69 +23,12 @@ export default class Enemy {
     // this.parent.fbxLoader.setPath("");
     this.parent.fbxLoader.load("zambia.fbx", (model) => {
       this.enemy = model;
-      // this.enemy.traverse(c => {
-      //   console.log('from enemy => ', c)
-
-      //   if (c.material && c.material.map) {
-      //     c.material.map.encoding = THREE.LinearEncoding;
-
-      //   }
-      // });
-      // this.mixer = new THREE.AnimationMixer(model);
-      // this.mixer.addEventListener('finished', () => {
-      //   this.finishedCallback()
-      // });
-
-      // this.bones = {};
-      // this.character.traverse(c => {
-      //   if (!c.skeleton) {
-      //     return;
-      //   }
-      //   for (let b of c.skeleton.bones) {
-      //     this.bones[b.name] = b;
-      //   }
-      // });
-
-
-      // const onLoadShtoGun = (gun) => {
-      //   console.log(this.bones)
-      //   // this.bones.mixamorigRightHandRing1.add(gun);
-      //   this.bones.mixamorigLeftHandThumb1.add(gun);
-      //   // this.bones.mixamorigRightHandIndex1.add(gun);
-      // }
-
-
       this.parent.fbxLoader.load("walking-zambia.fbx", (anim) => {
         this.walkingClip = anim.animations[0];
       });
-
       this.parent.fbxLoader.load("zombia-die.fbx", (anim) => {
         this.dieClip = anim.animations[0];
       });
-      // this.parent.fbxLoader.load("Rifle Run.fbx", (a) => {
-      //   onLoad("run", a);
-      // });
-      // this.parent.fbxLoader.load("Rifle Idle.fbx", (a) => {
-      //   onLoad("idle", a);
-      // });
-      // this.parent.fbxLoader.load("Backwards Rifle Walk.fbx", (a) => {
-      //   onLoad("back", a);
-      // });
-      // this.parent.fbxLoader.load("Rifle Side Left.fbx", (a) => {
-      //   onLoad("left", a);
-      // });
-      // this.parent.fbxLoader.load("Rifle Side Right.fbx", (a) => {
-      //   onLoad("right", a);
-      // });
-      // this.parent.fbxLoader.load("Gunplay.fbx", (a) => {
-      //   onLoad("shoot", a);
-      // });
-      // this.parent.fbxLoader.load("shotgun.fbx", (gun) => {
-      //   onLoadShtoGun(gun);
-      // });
-
-      //   console.log(model)
-      //   this.scene.add(model);
     });
 
   }

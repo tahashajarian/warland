@@ -36,8 +36,10 @@ class World {
     this.addObjects();
     this.addSky();
     this.clock = new THREE.Clock();
-    this.controler = new Controler();
+    this.controler = new Controler(this);
     this.movement = this.controler.movement;
+    this.score = 0;
+    this.scoreElement = document.querySelector('#score')
     this.update();
   }
 
@@ -96,7 +98,6 @@ class World {
 
   addControls() {
     this.controls = new OrbitControls(this.camera, this.canvas);
-    this.controls.enableDamping = true;
     this.controls.enableDamping = true;
     // this.controls.minDistance = 5;
     // this.controls.maxDistance = 15;
@@ -177,7 +178,7 @@ class World {
     this.enemies = new Enemy(this, this.scene)
 
     setInterval(() => {
-      this.enemies.pawn();
+      if (!this.movement.pause) this.enemies.pawn();
     }, 1000);
   }
 
@@ -185,22 +186,30 @@ class World {
     this.soundManagement = new SoundMagnagment(this.camera);
   }
 
+  updateScore(score) {
+    this.score += score
+    this.scoreElement.innerHTML = Math.floor(this.score)
+  }
+
   update() {
-    const delta = this.clock.getDelta();
-    this.controls.update();
-    // const delta = clock.getDelta();
-    this.renderer.render(this.scene, this.camera);
-    window.requestAnimationFrame(() => this.update());
-    this.stats.update();
-    this.enemies.update(delta)
-    this.character.update(delta);
-    this.controler.updateDisplay();
+    if (!this.movement.pause) {
 
-    if (this.character.mixer) {
-      this.character.mixer.update(delta);
+      this.controler.updateDisplay();
+      const delta = this.clock.getDelta();
+      this.controls.update();
+      // const delta = clock.getDelta();
+      this.renderer.render(this.scene, this.camera);
+      this.stats.update();
+      this.enemies.update(delta)
+      this.character.update(delta);
+
+      if (this.character.mixer) {
+        this.character.mixer.update(delta);
+      }
+
+      this.processClick();
+      window.requestAnimationFrame(() => this.update());
     }
-
-    this.processClick();
   }
 
   addEventHandler() {
@@ -219,7 +228,7 @@ class World {
     });
     window.addEventListener('pointerup', (e) => {
 
- 
+
 
       if (!this.clickRequest) {
         if (

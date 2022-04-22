@@ -109,12 +109,6 @@ export class Character {
       this.parent.fbxLoader.load("Backwards Rifle Walk.fbx", (a) => {
         onLoad("back", a);
       });
-      this.parent.fbxLoader.load("Rifle Side Left.fbx", (a) => {
-        onLoad("left", a);
-      });
-      this.parent.fbxLoader.load("Rifle Side Right.fbx", (a) => {
-        onLoad("right", a);
-      });
       this.parent.fbxLoader.load("Gunplay.fbx", (a) => {
         onLoad("shoot", a);
       });
@@ -132,8 +126,7 @@ export class Character {
   }
 
   rotateGun() {
-    // console.log(this.gunRotateAxis, this.gun.rotation)
-    // console.log(this.gunPostitionAxis, this.gun.position)
+
 
     this.gun.rotation.set(
       this.gunRotateAxis.x,
@@ -161,15 +154,8 @@ export class Character {
       this.raycaster.set(new THREE.Vector3(this.character.position.x, 1, this.character.position.z), new THREE.Vector3(this.parent.camera.getWorldDirection(this.walkDirection).x, 0, this.parent.camera.getWorldDirection(this.walkDirection).z).normalize())
       const intersects = this.raycaster.intersectObjects(this.scene.children);
 
-      // if (intersects[0] && intersects[0].distance)
-        this.amiDistance = intersects[0].distance - 0.5
-      // for (let i = 1; i < intersects.length; i++) {
+      this.amiDistance = intersects[0].distance - 0.5
 
-      //   if (intersects[i].distance - 0.5 < this.amiDistance) {
-      //     this.amiDistance = intersects[i].distance - 0.5
-      //   }
-
-      // }
       this.rotateAndMoveAim(delta);
       if (this.parent.movement.forward) {
         if (this.parent.movement.shift) {
@@ -184,16 +170,15 @@ export class Character {
 
       if (
         !this.parent.movement.forward &&
-        !this.parent.movement.back &&
-        !this.parent.movement.right &&
-        !this.parent.movement.left) {
+        !this.parent.movement.back
+      ) {
         this.playAnimation("idle");
       }
       if (this.parent.movement.right) {
-        this.playAnimation("right");
+        this.rotateCamera(true)
       }
       if (this.parent.movement.left) {
-        this.playAnimation("left");
+        this.rotateCamera(false)
       }
       this.rotateCharacter(delta);
     }
@@ -214,6 +199,7 @@ export class Character {
             if (dead) {
               dead.status = 'dead'
               this.scene.remove(intersects[i].object)
+              this.parent.updateScore(intersects[i].distance)
             }
           }
         }
@@ -226,6 +212,8 @@ export class Character {
     toPlay.reset().fadeIn(this.fadeDuration).play();
     this.currentAction = animation;
   }
+
+
 
   rotateAndMoveAim(delta) {
     this.aim.lookAt(new THREE.Vector3(this.character.position.x, 2, this.character.position.z))
@@ -280,26 +268,18 @@ export class Character {
         this.parent.camera.position.x += moveX / 2;
         this.parent.camera.position.z += moveZ / 2;
       }
-      if (this.parent.movement.right) {
-        this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI / 2);
-        let moveX = this.walkDirection.x * velocity * delta;
-        let moveZ = this.walkDirection.z * velocity * delta;
-        this.character.position.x -= moveX / 4;
-        this.character.position.z -= moveZ / 4;
-        this.parent.camera.position.x -= moveX / 4;
-        this.parent.camera.position.z -= moveZ / 4;
-      }
-      if (this.parent.movement.left) {
-        this.walkDirection.applyAxisAngle(this.rotateAngle, Math.PI / 2);
-        let moveX = this.walkDirection.x * velocity * delta;
-        let moveZ = this.walkDirection.z * velocity * delta;
-        this.character.position.x += moveX / 4;
-        this.character.position.z += moveZ / 4;
-        this.parent.camera.position.x += moveX / 4;
-        this.parent.camera.position.z += moveZ / 4;
-      }
+
       this.updateCameraTarget();
     }
+  }
+
+
+  rotateCamera(right) {
+    const _vector = new THREE.Vector3();
+    _vector.setFromMatrixColumn(this.parent.camera.matrix, 0);
+
+    this.parent.camera.position.addScaledVector(_vector, right ? -0.1 : 0.1);
+
   }
 
   updateCameraTarget(moveX, moveZ) {
