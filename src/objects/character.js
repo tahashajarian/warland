@@ -278,7 +278,7 @@ export class Character {
     const _vector = new THREE.Vector3();
     _vector.setFromMatrixColumn(this.parent.camera.matrix, 0);
 
-    this.parent.camera.position.addScaledVector(_vector, right ? -0.1 : 0.1);
+    this.parent.camera.position.addScaledVector(_vector, right ? -0.2 : 0.2);
 
   }
 
