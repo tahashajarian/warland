@@ -179,7 +179,7 @@ class World {
 
     setInterval(() => {
       if (!this.movement.pause) this.enemies.pawn();
-    }, 1000);
+    }, 10000);
   }
 
   addSound() {
