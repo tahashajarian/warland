@@ -30,15 +30,14 @@ export default class ParticleSystem {
 
     const material = new THREE.PointsMaterial({
       color: 0xff0000,
-      side: THREE.DoubleSide,
-      size: 1,
-      sizeAttenuation: true,
+      // side: THREE.DoubleSide,
+      // size: 1,
+      // sizeAttenuation: true,
       // transparent: true,
       // alphaMap: particleTexture,
       blending: THREE.AdditiveBlending,
-      depthWrite: true,
-      vertexColors: true,
-      needsUpdate: true,
+      // depthWrite: true,
+      // vertexColors: true,
     });
 
     // material.alphaMap = particleTexture
