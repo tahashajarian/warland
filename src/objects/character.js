@@ -23,6 +23,8 @@ export class Character {
       "y": 0,
       "z": 0
     }
+    this._vector = new THREE.Vector3();
+
     this.init();
     this.addAim();
 
@@ -277,10 +279,9 @@ export class Character {
 
 
   rotateCamera(right) {
-    const _vector = new THREE.Vector3();
-    _vector.setFromMatrixColumn(this.parent.camera.matrix, 0);
+    this._vector.setFromMatrixColumn(this.parent.camera.matrix, 0);
 
-    this.parent.camera.position.addScaledVector(_vector, right ? -0.2 : 0.2);
+    this.parent.camera.position.addScaledVector(this._vector, right ? -0.2 : 0.2);
 
   }
 

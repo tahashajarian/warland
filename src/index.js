@@ -236,8 +236,8 @@ class World {
 
       if (!this.clickRequest) {
         if (
-          Math.abs(this.clickPosition.x - e.clientX) > 4 ||
-          Math.abs(this.clickPosition.y - e.clientY) > 4
+          Math.abs(this.clickPosition.x - e.clientX) > 2 ||
+          Math.abs(this.clickPosition.y - e.clientY) > 2
         ) {
 
         } else {
