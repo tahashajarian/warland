@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { randomNumber } from './random-between';
 
 
 export default class ParticleSystem {
@@ -84,7 +85,7 @@ export default class ParticleSystem {
   _UpdateParticles(timeElapsed) {
     for (let p of this._particles) {
       p.life -= 0.05;
-      if (p.life <= -Math.PI / 3) p.life = -Math.PI / 3
+      if (p.life <= -Math.PI / 2) p.life = -Math.PI / 2
     }
 
     this._particles = this._particles.filter(p => {
@@ -93,7 +94,7 @@ export default class ParticleSystem {
 
     for (let p of this._particles) {
       const velocity = Math.sin(p.life) > 0 ? Math.sin(p.life) * (Math.random() + 0.1) : Math.sin(p.life) * (Math.random())
-      p.position.y += velocity;
+      p.position.y += Math.sin(p.life) * 0.5;
 
 
 
@@ -161,7 +162,7 @@ export default class ParticleSystem {
           (Math.random() * 2 - 1) + 3,
           (Math.random() - 0.5) + position_.z),
         color: new THREE.Color('red'),
-        life: Math.PI / 2
+        life: randomNumber(Math.PI / 6, Math.PI / 2)
       });
     }
 
