@@ -31,7 +31,7 @@ export default class ParticleSystem {
 
     const material = new THREE.PointsMaterial({
       color: 0xff0000,
-      // side: THREE.DoubleSide,
+      side: THREE.DoubleSide,
       // size: 1,
       // sizeAttenuation: true,
       // transparent: true,
