@@ -2,175 +2,193 @@ import * as THREE from 'three'
 
 
 export default class ParticleSystem {
-  constructor(params) {
-    const uniforms = {
-      diffuseTexture: {
-        value: new THREE.TextureLoader().load('./resources/fire.png')
-      },
-      pointMultiplier: {
-        value: window.innerHeight / (2.0 * Math.tan(0.5 * 60.0 * Math.PI / 180.0))
-      }
-    };
+  constructor(parent) {
+    this.parent = parent;
+    this.init();
+  }
 
-    this._material = new THREE.ShaderMaterial({
-      uniforms: uniforms,
-      vertexShader: _VS,
-      fragmentShader: _FS,
+  init() {
+    this._particles = [];
+    this.count = 100;
+    // const particlesMaterial = new THREE.PointsMaterial()
+    // const particleTexture = this.parent.textureLoader.load('textures/3.png')
+
+
+    // particlesMaterial.size = 1
+    // particlesMaterial.sizeAttenuation = true
+
+    // particlesMaterial.color = new THREE.Color('#ff88cc')
+
+    // particlesMaterial.transparent = true
+    // particlesMaterial.alphaMap = particleTexture
+    // // particlesMaterial.alphaTest = 0.01
+    // // particlesMaterial.depthTest = false
+    // particlesMaterial.depthWrite = false
+    // particlesMaterial.blending = THREE.AdditiveBlending
+
+    // particlesMaterial.vertexColors = true
+
+    const material = new THREE.PointsMaterial({
+      color: 0xff0000,
+      side: THREE.DoubleSide,
+      size: 1,
+      sizeAttenuation: true,
+      // transparent: true,
+      // alphaMap: particleTexture,
       blending: THREE.AdditiveBlending,
-      depthTest: true,
-      depthWrite: false,
-      transparent: true,
-      vertexColors: true
+      depthWrite: true,
+      vertexColors: true,
+      needsUpdate: true,
     });
 
-    this._camera = params.camera;
-    this._particles = [];
+    // material.alphaMap = particleTexture
+
+    this.parent.textureLoader.load("textures/3.png", function (map) {
+
+      material.alphaMap = map;
+      material.map = map;
+
+      material.needsUpdate = true;
+    });
+
+
 
     this._geometry = new THREE.BufferGeometry();
     this._geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3));
-    this._geometry.setAttribute('size', new THREE.Float32BufferAttribute([], 1));
-    this._geometry.setAttribute('colour', new THREE.Float32BufferAttribute([], 4));
-    this._geometry.setAttribute('angle', new THREE.Float32BufferAttribute([], 1));
+    this._geometry.setAttribute('color', new THREE.Float32BufferAttribute([], 3));
 
-    this._points = new THREE.Points(this._geometry, this._material);
-
-    params.parent.add(this._points);
-
-    this._alphaSpline = new LinearSpline((t, a, b) => {
-      return a + t * (b - a);
-    });
-    this._alphaSpline.AddPoint(0.0, 0.0);
-    this._alphaSpline.AddPoint(0.1, 1.0);
-    this._alphaSpline.AddPoint(0.6, 1.0);
-    this._alphaSpline.AddPoint(1.0, 0.0);
-
-    this._colourSpline = new LinearSpline((t, a, b) => {
-      const c = a.clone();
-      return c.lerp(b, t);
-    });
-    this._colourSpline.AddPoint(0.0, new THREE.Color(0xFFFF80));
-    this._colourSpline.AddPoint(1.0, new THREE.Color(0xFF8080));
-
-    this._sizeSpline = new LinearSpline((t, a, b) => {
-      return a + t * (b - a);
-    });
-    this._sizeSpline.AddPoint(0.0, 1.0);
-    this._sizeSpline.AddPoint(0.5, 5.0);
-    this._sizeSpline.AddPoint(1.0, 1.0);
-
-    document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
+    this._points = new THREE.Points(this._geometry, material);
+    this.parent.scene.add(this._points);
 
     this._UpdateGeometry();
+
   }
 
-  _onKeyUp(event) {
-    switch (event.keyCode) {
-      case 32: // SPACE
-        this._AddParticles();
-        break;
-    }
+  update(delta, elapsedTime) {
+    this._UpdateGeometry()
+    this._UpdateParticles(elapsedTime)
+
+    // if (this.particlesGeometry) {
+
+    //   for (let i = 0; i < this.count; i++) {
+    //     let i3 = i * 3
+
+    //     const x = this.particlesGeometry.attributes.position.array[i3]
+    //     this.particlesGeometry.attributes.position.array[i3 + 1] += Math.sin(elapsedTime + x)
+    //   }
+    //   this.particlesGeometry.attributes.position.needsUpdate = true
+    // }
+
   }
 
-  _AddParticles(timeElapsed) {
-    if (!this.gdfsghk) {
-      this.gdfsghk = 0.0;
-    }
-    this.gdfsghk += timeElapsed;
-    const n = Math.floor(this.gdfsghk * 75.0);
-    this.gdfsghk -= n / 75.0;
 
-    for (let i = 0; i < n; i++) {
-      const life = (Math.random() * 0.75 + 0.25) * 10.0;
+  _UpdateParticles(timeElapsed) {
+    for (let p of this._particles) {
+      p.life -= 0.05;
+      if (p.life <= -Math.PI / 3) p.life = -Math.PI / 3
+    }
+
+    this._particles = this._particles.filter(p => {
+      return p.position.y >= 0;
+    });
+
+    for (let p of this._particles) {
+      const velocity = Math.sin(p.life) > 0 ? Math.sin(p.life) * (Math.random() + 0.1) : Math.sin(p.life) * (Math.random())
+      p.position.y += velocity;
+
+
+
+      // p.position.add(p.velocity.clone().multiplyScalar(timeElapsed));
+
+      // const drag = p.velocity.clone();
+      // drag.multiplyScalar(timeElapsed * 0.1);
+      // drag.x = Math.sign(p.velocity.x) * Math.min(Math.abs(drag.x), Math.abs(p.velocity.x));
+      // drag.y = Math.sign(p.velocity.y) * Math.min(Math.abs(drag.y), Math.abs(p.velocity.y));
+      // drag.z = Math.sign(p.velocity.z) * Math.min(Math.abs(drag.z), Math.abs(p.velocity.z));
+      // p.velocity.sub(drag);
+    }
+
+    // this._particles.sort((a, b) => {
+    //   const d1 = this._camera.position.distanceTo(a.position);
+    //   const d2 = this._camera.position.distanceTo(b.position);
+
+    //   if (d1 > d2) {
+    //     return -1;
+    //   }
+
+    //   if (d1 < d2) {
+    //     return 1;
+    //   }
+
+    //   return 0;
+    // });
+  }
+
+
+  initParticleSystem(position_) {
+    // this.particlesGeometry = new THREE.BufferGeometry()
+
+    // const positions = new Float32Array(this.count * 3)
+    // const colors = new Float32Array(this.count * 3)
+
+    // for (let i = 0; i < this.count * 3; i++) {
+    //   switch (i % 3) {
+    //     case 0:
+    //       positions[i] = (Math.random() - 0.5) + position.x
+    //       colors[i] = 1
+
+    //       break;
+    //     case 1:
+    //       positions[i] = (Math.random() - 0.5)
+    //       colors[i] = 0
+
+
+    //       break;
+    //     case 2:
+    //       positions[i] = (Math.random() - 0.5) + position.z
+    //       colors[i] = 0
+
+    //       break;
+
+    //     default:
+    //       break;
+    //   }
+    // }
+    for (let i = 0; i < this.count; i++) {
+
       this._particles.push({
         position: new THREE.Vector3(
-          (Math.random() * 2 - 1) * 1.0,
-          (Math.random() * 2 - 1) * 1.0,
-          (Math.random() * 2 - 1) * 1.0),
-        size: (Math.random() * 0.5 + 0.5) * 4.0,
-        colour: new THREE.Color(),
-        alpha: 1.0,
-        life: life,
-        maxLife: life,
-        rotation: Math.random() * 2.0 * Math.PI,
-        velocity: new THREE.Vector3(0, -15, 0),
+          (Math.random() - 0.5) + position_.x,
+          (Math.random() * 2 - 1) + 3,
+          (Math.random() - 0.5) + position_.z),
+        color: new THREE.Color('red'),
+        life: Math.PI / 2
       });
     }
+
+    // this.particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    // this.particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+
+    // const particles = new THREE.Points(this.particlesGeometry, particlesMaterial)
+    // // particles.position = postion;
+    // this.parent.scene.add(particles)
+
+
   }
 
   _UpdateGeometry() {
     const positions = [];
-    const sizes = [];
-    const colours = [];
-    const angles = [];
-
+    const colors = []
     for (let p of this._particles) {
       positions.push(p.position.x, p.position.y, p.position.z);
-      colours.push(p.colour.r, p.colour.g, p.colour.b, p.alpha);
-      sizes.push(p.currentSize);
-      angles.push(p.rotation);
+      colors.push(p.color.r, p.color.g, p.color.b);
     }
-
     this._geometry.setAttribute(
       'position', new THREE.Float32BufferAttribute(positions, 3));
     this._geometry.setAttribute(
-      'size', new THREE.Float32BufferAttribute(sizes, 1));
-    this._geometry.setAttribute(
-      'colour', new THREE.Float32BufferAttribute(colours, 4));
-    this._geometry.setAttribute(
-      'angle', new THREE.Float32BufferAttribute(angles, 1));
-
+      'color', new THREE.Float32BufferAttribute(colors, 3));
     this._geometry.attributes.position.needsUpdate = true;
-    this._geometry.attributes.size.needsUpdate = true;
-    this._geometry.attributes.colour.needsUpdate = true;
-    this._geometry.attributes.angle.needsUpdate = true;
+
   }
 
-  _UpdateParticles(timeElapsed) {
-    for (let p of this._particles) {
-      p.life -= timeElapsed;
-    }
-
-    this._particles = this._particles.filter(p => {
-      return p.life > 0.0;
-    });
-
-    for (let p of this._particles) {
-      const t = 1.0 - p.life / p.maxLife;
-
-      p.rotation += timeElapsed * 0.5;
-      p.alpha = this._alphaSpline.Get(t);
-      p.currentSize = p.size * this._sizeSpline.Get(t);
-      p.colour.copy(this._colourSpline.Get(t));
-
-      p.position.add(p.velocity.clone().multiplyScalar(timeElapsed));
-
-      const drag = p.velocity.clone();
-      drag.multiplyScalar(timeElapsed * 0.1);
-      drag.x = Math.sign(p.velocity.x) * Math.min(Math.abs(drag.x), Math.abs(p.velocity.x));
-      drag.y = Math.sign(p.velocity.y) * Math.min(Math.abs(drag.y), Math.abs(p.velocity.y));
-      drag.z = Math.sign(p.velocity.z) * Math.min(Math.abs(drag.z), Math.abs(p.velocity.z));
-      p.velocity.sub(drag);
-    }
-
-    this._particles.sort((a, b) => {
-      const d1 = this._camera.position.distanceTo(a.position);
-      const d2 = this._camera.position.distanceTo(b.position);
-
-      if (d1 > d2) {
-        return -1;
-      }
-
-      if (d1 < d2) {
-        return 1;
-      }
-
-      return 0;
-    });
-  }
-
-  Step(timeElapsed) {
-    this._AddParticles(timeElapsed);
-    this._UpdateParticles(timeElapsed);
-    this._UpdateGeometry();
-  }
 }

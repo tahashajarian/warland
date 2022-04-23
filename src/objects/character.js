@@ -154,7 +154,9 @@ export class Character {
       this.raycaster.set(new THREE.Vector3(this.character.position.x, 1, this.character.position.z), new THREE.Vector3(this.parent.camera.getWorldDirection(this.walkDirection).x, 0, this.parent.camera.getWorldDirection(this.walkDirection).z).normalize())
       const intersects = this.raycaster.intersectObjects(this.scene.children);
 
-      this.amiDistance = intersects[0].distance - 0.5
+      if (intersects && intersects[0] && intersects[0].distance) {
+        this.amiDistance = intersects[0].distance - 0.5
+      }
 
       this.rotateAndMoveAim(delta);
       if (this.parent.movement.forward) {
@@ -312,7 +314,7 @@ export class Character {
       side: THREE.DoubleSide
     })
 
-    this.parent.textureLoader.load("images/aim.png", function (map) {
+    this.parent.textureLoader.load("textures/aim.png", function (map) {
       material.map = map;
       material.needsUpdate = true;
     });

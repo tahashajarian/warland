@@ -18,13 +18,16 @@ export default class Enemy {
   }
 
   init() {
-    this.planeMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 8, 3), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.01 }))
+    this.planeMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 8, 3), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.02 }))
     this.animations = [];
     // this.parent.fbxLoader.setPath("");
     this.parent.fbxLoader.load("zambia.fbx", (model) => {
       this.enemy = model;
       this.parent.fbxLoader.load("walking-zambia.fbx", (anim) => {
         this.walkingClip = anim.animations[0];
+      });
+      this.parent.fbxLoader.load("Zombie Punching.fbx", (anim) => {
+        this.punchClip = anim.animations[0];
       });
       this.parent.fbxLoader.load("zombia-die.fbx", (anim) => {
         this.dieClip = anim.animations[0];
@@ -44,12 +47,18 @@ export default class Enemy {
             this.parent.character.character.position.x - zombie.model.position.x,
             this.parent.character.character.position.z - zombie.model.position.z
           );
-          zombie.model.position.x += Math.sin(angle) * .45 * delta;
-          zombie.model.position.z += Math.cos(angle) * .45 * delta;
-          zombie.planeMesh.position.x += Math.sin(angle) * .45 * delta;
-          zombie.planeMesh.position.z += Math.cos(angle) * .45 * delta;
+          if (zombie.model.position.distanceTo(this.parent.character.character.position) > 2.5) {
+            this.playAnimation('walkAction', zombie)
+            zombie.model.position.x += Math.sin(angle) * .45 * delta;
+            zombie.model.position.z += Math.cos(angle) * .45 * delta;
+            zombie.planeMesh.position.x += Math.sin(angle) * .45 * delta;
+            zombie.planeMesh.position.z += Math.cos(angle) * .45 * delta;
+          } else {
+            this.playAnimation('punchAction', zombie)
+          }
         } else if (zombie.status !== 'finish') {
-          this.playAnimationDie(zombie, index)
+          this.parent.particleSystem.initParticleSystem(zombie.model.position)
+          this.playAnimation('dieAction', zombie)
         }
       })
     }
@@ -60,17 +69,18 @@ export default class Enemy {
       const zombie = {}
       this.enemyCount += 1
       zombie.model = SkeletonUtils.clone(this.enemy);
-      zombie.walkAnim = this.walkingClip.clone();
-      zombie.dieAnim = this.dieClip.clone();
+      const walkAnim = this.walkingClip;
+      const dieAnim = this.dieClip;
+      const punchAnim = this.punchClip;
       zombie.mixer = new THREE.AnimationMixer(zombie.model);
-      zombie.walkAction = zombie.mixer.clipAction(zombie.walkAnim);
-      zombie.dieAction = zombie.mixer.clipAction(zombie.dieAnim);
+      zombie.walkAction = zombie.mixer.clipAction(walkAnim);
+      zombie.dieAction = zombie.mixer.clipAction(dieAnim);
+      zombie.punchAction = zombie.mixer.clipAction(punchAnim);
       zombie.planeMesh = this.planeMesh.clone();
       zombie.planeMesh.status = 'alive'
       zombie.status = 'alive'
       zombie.planeMesh.myId = this.enemyCount
       zombie.myId = this.enemyCount
-      zombie.walkAction.fadeIn(this.fadeDuration).play();
       if (Math.random() < 0.5) {
         const random = Math.random()
         const randombewen = randomNumber(-50, 50)
@@ -97,20 +107,27 @@ export default class Enemy {
   }
 
 
-  playAnimationDie(zobmie, index) {
-    // console.log('zobmie to die ', zobmie)
-    zobmie.walkAction.fadeOut(this.fadeDuration);
-    zobmie.dieAction.setLoop(THREE.LoopOnce, 1);
-
-    zobmie.dieAction.clampWhenFinished = true;
-    zobmie.dieAction.reset().fadeIn(this.fadeDuration).play();
-    zobmie.status = 'finish'
-    zobmie.mixer.addEventListener('finished', () => {
-      this.finishedCallback(zobmie.model, index)
-    });
+  playAnimation(animationName, zombie) {
+    if (zombie.currentAction === animationName) return;
+    const current = zombie[zombie.currentAction];
+    if (current) {
+      current.fadeOut(this.fadeDuration);
+    }
+    if (animationName === 'dieAction') {
+      zombie[animationName].setLoop(THREE.LoopOnce, 1);
+      zombie[animationName].clampWhenFinished = true;
+      zombie.mixer.addEventListener('finished', () => {
+        this.finishedCallback(zombie.model)
+      });
+      zombie.status = 'finish'
+    }
+    zombie[animationName].reset().fadeIn(this.fadeDuration).play();
+    zombie.currentAction = animationName;
   }
 
-  finishedCallback(zombieModel, index) {
+
+
+  finishedCallback(zombieModel) {
     // console.log('zombie model => ', zombieModel)
     // this.zombies.splice(index, 1)
     this.scene.remove(zombieModel)

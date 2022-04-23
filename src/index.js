@@ -11,6 +11,7 @@ import Enemy from "./objects/enemy";
 import * as dat from 'dat.gui'
 import { gsap } from 'gsap'
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import ParticleSystem from "./particle-system";
 
 
 
@@ -37,6 +38,7 @@ class World {
     this.addSky();
     this.clock = new THREE.Clock();
     this.controler = new Controler(this);
+    this.particleSystem = new ParticleSystem(this)
     this.movement = this.controler.movement;
     this.score = 0;
     this.scoreElement = document.querySelector('#score')
@@ -196,12 +198,14 @@ class World {
 
       this.controler.updateDisplay();
       const delta = this.clock.getDelta();
+      const elapsedTime = this.clock.getElapsedTime()
       this.controls.update();
       // const delta = clock.getDelta();
       this.renderer.render(this.scene, this.camera);
       this.stats.update();
       this.enemies.update(delta)
       this.character.update(delta);
+      this.particleSystem.update(delta, elapsedTime)
 
       if (this.character.mixer) {
         this.character.mixer.update(delta);
