@@ -22,6 +22,7 @@ class World {
   }
 
   init() {
+    this.debugging = false;
     this.addLoadingManager()
     this.addRenderer();
     this.addScene();
@@ -31,7 +32,9 @@ class World {
     this.addStats();
     this.addSound();
     this.mixers = [];
-    this.gui = new dat.GUI()
+    if (this.debugging) {
+      this.gui = new dat.GUI()
+    }
     this.addControls();
     this.addEventHandler();
     this.addObjects();
@@ -94,8 +97,10 @@ class World {
   }
 
   addStats() {
-    this.stats = new Stats();
-    document.body.appendChild(this.stats.dom);
+    if (this.debugging) {
+      this.stats = new Stats();
+      document.body.appendChild(this.stats.dom);
+    }
   }
 
   addControls() {
@@ -134,6 +139,15 @@ class World {
         loadingBarElement.classList.add('ended')
         loadingBarElementHelp.classList.add('ended')
         loadingBarElement.style.transform = ''
+        const arrows = document.getElementsByClassName('buttons');
+        const scoreorad = document.querySelector('.score-board')
+        if (scoreorad) scoreorad.style.display = 'block'
+        if (arrows) {
+          for (let i = 0; i < arrows.length; i++) {
+            const element = arrows[i];
+            element.style.display = 'block'
+          }
+        }
       }, 500)
     }
 
@@ -202,7 +216,9 @@ class World {
       this.controls.update();
       // const delta = clock.getDelta();
       this.renderer.render(this.scene, this.camera);
-      this.stats.update();
+      if (this.debugging) {
+        this.stats.update();
+      }
       this.enemies.update(delta)
       this.character.update(delta);
       this.particleSystem.update(delta, elapsedTime)
@@ -233,8 +249,8 @@ class World {
     window.addEventListener('pointerup', (e) => {
 
 
-
       if (!this.clickRequest) {
+        if (this.clock.getElapsedTime() - this.clickDownTime > 0.5) return
         if (
           Math.abs(this.clickPosition.x - e.clientX) > 2 ||
           Math.abs(this.clickPosition.y - e.clientY) > 2
@@ -246,8 +262,11 @@ class World {
       }
     });
     window.addEventListener('pointerdown', (e) => {
+      this.clickDownTime = this.clock.getElapsedTime()
       this.clickPosition = { x: e.clientX, y: e.clientY }
     });
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
   }
   processClick() {
     if (this.clickRequest) {
