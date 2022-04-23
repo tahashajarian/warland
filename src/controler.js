@@ -23,6 +23,7 @@ export default class Controler {
       elemet.id = key[0];
       elemet.style.position = "absolute";
       elemet.style.cursor = "pointer";
+      elemet.style.display = 'none'
       elemet.style.opacity = 0.75;
 
       // elemet.ontouchstart = () => {
@@ -54,8 +55,10 @@ export default class Controler {
       }
 
       if (key[0] === "pause") {
-        elemet.style.top = "-20px";
-        elemet.style.left = "280px";
+        elemet.style.top = "0px";
+        elemet.style.left = "0px";
+        elemet.style.display = "block";
+
       }
 
       elemet.style.padding = "10px";
