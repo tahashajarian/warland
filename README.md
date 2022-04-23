@@ -1,3 +1,3 @@
 # warland
-a 3d game using three js 
+3D game using three js 
 
