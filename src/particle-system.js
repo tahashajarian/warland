@@ -10,7 +10,7 @@ export default class ParticleSystem {
 
   init() {
     this._particles = [];
-    this.count = 100;
+    this.count = 200;
     // const particlesMaterial = new THREE.PointsMaterial()
     // const particleTexture = this.parent.textureLoader.load('textures/3.png')
 
@@ -30,9 +30,9 @@ export default class ParticleSystem {
     // particlesMaterial.vertexColors = true
 
     const material = new THREE.PointsMaterial({
-      color: 0xff0000,
+      color: 0x5E0000,
       side: THREE.DoubleSide,
-      // size: 1,
+      size: 0.25,
       // sizeAttenuation: true,
       // transparent: true,
       // alphaMap: particleTexture,
@@ -161,7 +161,7 @@ export default class ParticleSystem {
           (Math.random() - 0.5) + position_.x,
           (Math.random() * 2 - 1) + 3,
           (Math.random() - 0.5) + position_.z),
-        color: new THREE.Color('red'),
+        color: new THREE.Color(0x5E0000),
         life: randomNumber(Math.PI / 6, Math.PI / 2)
       });
     }
