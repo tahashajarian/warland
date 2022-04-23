@@ -48,7 +48,7 @@ body {
   flex-direction: column;
   opacity: 0.6;
   height: auto;
-  padding-bottom: 100px;
+  padding-bottom: 150px;
   font-size: 16pt;
 }
 
@@ -104,4 +104,8 @@ body {
   padding: 5px;
   z-index: 11000;
   display: none;
+}
+
+.disclaimer {
+  display: none !important;
 }

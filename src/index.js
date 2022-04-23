@@ -79,7 +79,7 @@ class World {
       0.1,
       1000
     );
-    this.camera.position.set(0, 4, -15);
+    this.camera.position.set(0, 2, -10);
     this.scene.add(this.camera);
   }
 
