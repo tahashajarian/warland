@@ -13,6 +13,7 @@ export class Walls {
     const wall2 = wall(this.parent.textureLoader, [50, 10, 0], -Math.PI / 2)
     const wall3 = wall(this.parent.textureLoader, [0, 10, -50], 0)
     const wall4 = wall(this.parent.textureLoader, [-50, 10, 0], Math.PI / 2)
+    this.meshes = [wall1, wall2, wall3, wall4]
     this.scene.add(wall1, wall2, wall3, wall4);
   }
 }

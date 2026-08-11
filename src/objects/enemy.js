@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 import { randomNumber } from '../random-between';
+import { GAME_CONFIG } from '../config';
 
 
 
@@ -13,7 +14,7 @@ export default class Enemy {
     this.parent = parent
     this.rotateAngle = new THREE.Vector3(0, 1, 0);
     this.enemyCount = 0;
-    this.maxZomies = 50
+    this.maxZombies = GAME_CONFIG.enemyLimit
     this.init()
   }
 
@@ -38,7 +39,7 @@ export default class Enemy {
 
   update(delta) {
     if (this.parent.loaded) {
-      this.zombies.forEach((zombie, index) => {
+      this.zombies.forEach((zombie) => {
         zombie.mixer.update(delta)
         if (zombie.status === 'alive') {
           zombie.model.lookAt(this.parent.character.character.position);
@@ -47,14 +48,19 @@ export default class Enemy {
             this.parent.character.character.position.x - zombie.model.position.x,
             this.parent.character.character.position.z - zombie.model.position.z
           );
-          if (zombie.model.position.distanceTo(this.parent.character.character.position) > 2.5) {
+          if (zombie.model.position.distanceTo(this.parent.character.character.position) > GAME_CONFIG.enemyAttackDistance) {
             this.playAnimation('walkAction', zombie)
-            zombie.model.position.x += Math.sin(angle) * .45 * delta;
-            zombie.model.position.z += Math.cos(angle) * .45 * delta;
-            zombie.planeMesh.position.x += Math.sin(angle) * .45 * delta;
-            zombie.planeMesh.position.z += Math.cos(angle) * .45 * delta;
+            zombie.attackCooldown = 0
+            zombie.model.position.x += Math.sin(angle) * GAME_CONFIG.enemySpeed * delta;
+            zombie.model.position.z += Math.cos(angle) * GAME_CONFIG.enemySpeed * delta;
+            zombie.planeMesh.position.copy(zombie.model.position)
           } else {
             this.playAnimation('punchAction', zombie)
+            zombie.attackCooldown -= delta
+            if (zombie.attackCooldown <= 0) {
+              this.parent.damagePlayer(GAME_CONFIG.enemyDamage)
+              zombie.attackCooldown = GAME_CONFIG.enemyAttackCooldown
+            }
           }
         } else if (zombie.status !== 'finish') {
           this.parent.particleSystem.initParticleSystem(zombie.model.position)
@@ -64,8 +70,8 @@ export default class Enemy {
     }
   }
 
-  pawn() {
-    if (this.parent.loaded && this.zombies.length < this.maxZomies) {
+  spawn() {
+    if (this.parent.loaded && this.zombies.length < this.maxZombies) {
       const zombie = {}
       this.enemyCount += 1
       zombie.model = SkeletonUtils.clone(this.enemy);
@@ -79,6 +85,7 @@ export default class Enemy {
       zombie.planeMesh = this.planeMesh.clone();
       zombie.planeMesh.status = 'alive'
       zombie.status = 'alive'
+      zombie.attackCooldown = GAME_CONFIG.enemyAttackCooldown
       zombie.planeMesh.myId = this.enemyCount
       zombie.myId = this.enemyCount
       if (Math.random() < 0.5) {
@@ -117,7 +124,7 @@ export default class Enemy {
       zombie[animationName].setLoop(THREE.LoopOnce, 1);
       zombie[animationName].clampWhenFinished = true;
       zombie.mixer.addEventListener('finished', () => {
-        this.finishedCallback(zombie.model)
+        this.finishedCallback(zombie)
       });
       zombie.status = 'finish'
     }
@@ -127,11 +134,12 @@ export default class Enemy {
 
 
 
-  finishedCallback(zombieModel) {
-    // console.log('zombie model => ', zombieModel)
-    // this.zombies.splice(index, 1)
-    this.scene.remove(zombieModel)
-    this.maxZomies += 1
+  finishedCallback(zombie) {
+    this.scene.remove(zombie.model, zombie.planeMesh)
+    zombie.mixer.stopAllAction()
+    zombie.mixer.uncacheRoot(zombie.model)
+    const index = this.zombies.indexOf(zombie)
+    if (index !== -1) this.zombies.splice(index, 1)
   }
 
 }

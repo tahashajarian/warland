@@ -1,17 +1,15 @@
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import Stats from "three/examples/jsm/libs/stats.module";
 import { Ground } from "./objects/ground";
 import { Character } from "./objects/character";
 import { Walls } from "./objects/walls";
 import Controler from "./controler";
 import SoundMagnagment from "./sound-managment";
 import Enemy from "./objects/enemy";
-import * as dat from 'dat.gui'
-import { gsap } from 'gsap'
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import ParticleSystem from "./particle-system";
+import { GAME_CONFIG } from "./config";
 
 
 
@@ -22,19 +20,16 @@ class World {
   }
 
   init() {
-    this.debugging = false;
+    this.state = 'loading';
+    this.health = GAME_CONFIG.playerHealth;
     this.addLoadingManager()
     this.addRenderer();
     this.addScene();
     this.addOverlay()
     this.addCamera();
     this.addLight();
-    this.addStats();
     this.addSound();
     this.mixers = [];
-    if (this.debugging) {
-      this.gui = new dat.GUI()
-    }
     this.addControls();
     this.addEventHandler();
     this.addObjects();
@@ -45,6 +40,8 @@ class World {
     this.movement = this.controler.movement;
     this.score = 0;
     this.scoreElement = document.querySelector('#score')
+    this.healthElement = document.querySelector('#health')
+    this.statusElement = document.querySelector('#status')
     this.update();
   }
 
@@ -79,7 +76,8 @@ class World {
       0.1,
       1000
     );
-    this.camera.position.set(0, 7, -15);
+    const { x, y, z } = GAME_CONFIG.cameraPosition;
+    this.camera.position.set(x, y, z);
     this.scene.add(this.camera);
   }
 
@@ -96,18 +94,12 @@ class World {
     this.scene.add(directionalLight, light);
   }
 
-  addStats() {
-    if (this.debugging) {
-      this.stats = new Stats();
-      document.body.appendChild(this.stats.dom);
-    }
-  }
-
   addControls() {
     this.controls = new OrbitControls(this.camera, this.canvas);
+    this.controls.target.set(0, GAME_CONFIG.cameraTargetHeight, 0);
     this.controls.enableDamping = true;
-    // this.controls.minDistance = 5;
-    // this.controls.maxDistance = 15;
+    this.controls.minDistance = GAME_CONFIG.cameraMinDistance;
+    this.controls.maxDistance = GAME_CONFIG.cameraMaxDistance;
     this.controls.enablePan = false;
     this.controls.maxPolarAngle = Math.PI / 2 - 0.05;
     // this.controls.minPolarAngle = 0.5;
@@ -125,15 +117,14 @@ class World {
       const progressRatio = itemsLoaded / itemsTotal
       loadingBarElement.style.transform = `scaleX(${progressRatio})`
     }
-    this.loadingManager.onLoad = (e) => {
-      console.log('loaded all asset')
+    this.loadingManager.onLoad = () => {
       // Wait a little
       window.setTimeout(() => {
 
         this.loaded = true;
+        this.state = 'playing';
         this.character.start();
-        // Animate overlay
-        gsap.to(this.overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0, delay: 1 })
+        this.overlayFadeStart = performance.now() + 1000;
 
         // Update loadingBarElement
         loadingBarElement.classList.add('ended')
@@ -149,6 +140,11 @@ class World {
           }
         }
       }, 500)
+    }
+    this.loadingManager.onError = (url) => {
+      this.state = 'error';
+      loadingBarElementHelp.classList.add('error')
+      loadingBarElementHelp.textContent = `Unable to load ${url}. Please refresh and try again.`
     }
 
     this.fbxLoader = new FBXLoader(this.loadingManager);
@@ -194,12 +190,12 @@ class World {
     this.enemies = new Enemy(this, this.scene)
 
     setInterval(() => {
-      if (!this.movement.pause) this.enemies.pawn();
-    }, 5000);
+      if (this.state === 'playing') this.enemies.spawn();
+    }, GAME_CONFIG.enemySpawnIntervalMs);
   }
 
   addSound() {
-    this.soundManagement = new SoundMagnagment(this.camera);
+    this.soundManagement = new SoundMagnagment(this.camera, this.loadingManager);
   }
 
   updateScore(score) {
@@ -207,18 +203,34 @@ class World {
     this.scoreElement.innerHTML = Math.floor(this.score)
   }
 
-  update() {
-    if (!this.movement.pause) {
+  damagePlayer(amount) {
+    if (this.state !== 'playing') return
+    this.health = Math.max(0, this.health - amount)
+    this.healthElement.textContent = this.health
+    if (this.health === 0) {
+      this.state = 'gameOver'
+      this.movement.pause = true
+      this.statusElement.textContent = 'Game over — refresh to restart'
+      this.statusElement.hidden = false
+    }
+  }
 
+  setPaused(paused) {
+    if (this.state === 'gameOver' || this.state === 'loading') return
+    this.movement.pause = paused
+    this.state = paused ? 'paused' : 'playing'
+    this.statusElement.textContent = paused ? 'Paused' : ''
+    this.statusElement.hidden = !paused
+    this.clock.getDelta()
+  }
+
+  update() {
+    window.requestAnimationFrame(() => this.update());
+    const rawDelta = this.clock.getDelta();
+    const delta = Math.min(rawDelta, GAME_CONFIG.maxDelta);
+    if (this.state === 'playing') {
       this.controler.updateDisplay();
-      const delta = this.clock.getDelta();
       const elapsedTime = this.clock.getElapsedTime()
-      this.controls.update();
-      // const delta = clock.getDelta();
-      this.renderer.render(this.scene, this.camera);
-      if (this.debugging) {
-        this.stats.update();
-      }
       this.enemies.update(delta)
       this.character.update(delta);
       this.particleSystem.update(delta, elapsedTime)
@@ -228,8 +240,15 @@ class World {
       }
 
       this.processClick();
-      window.requestAnimationFrame(() => this.update());
     }
+    if (this.overlayFadeStart) {
+      const progress = Math.min(1, (performance.now() - this.overlayFadeStart) / 3000)
+      if (progress >= 0) this.overlayMaterial.uniforms.uAlpha.value = 1 - progress
+      if (progress === 1) this.overlayFadeStart = null
+    }
+    this.controls.enabled = this.state === 'playing'
+    this.controls.update();
+    this.renderer.render(this.scene, this.camera);
   }
 
   addEventHandler() {
@@ -249,8 +268,8 @@ class World {
     window.addEventListener('pointerup', (e) => {
 
 
-      if (!this.clickRequest) {
-        if (this.clock.getElapsedTime() - this.clickDownTime > 0.5) return
+      if (!this.clickRequest && this.state === 'playing') {
+        if (performance.now() - this.clickDownTime > 500) return
         if (
           Math.abs(this.clickPosition.x - e.clientX) > 2 ||
           Math.abs(this.clickPosition.y - e.clientY) > 2
@@ -262,7 +281,7 @@ class World {
       }
     });
     window.addEventListener('pointerdown', (e) => {
-      this.clickDownTime = this.clock.getElapsedTime()
+      this.clickDownTime = performance.now()
       this.clickPosition = { x: e.clientX, y: e.clientY }
     });
     document.addEventListener('contextmenu', event => event.preventDefault());

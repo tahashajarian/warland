@@ -2,8 +2,9 @@ import * as THREE from 'three'
 
 
 export default class SoundMagnagment {
-  constructor(camera) {
+  constructor(camera, loadingManager) {
     this.camera = camera
+    this.loadingManager = loadingManager
     this.init()
   }
 
@@ -12,7 +13,7 @@ export default class SoundMagnagment {
     this.listener = new THREE.AudioListener();
     this.camera.add(this.listener);
     this.sound = new THREE.Audio(this.listener);
-    this.audioLoader = new THREE.AudioLoader();
+    this.audioLoader = new THREE.AudioLoader(this.loadingManager);
     this.audioLoader.setPath("sounds/");
     this.audioLoader.load('fire.mp3', (buffer) => {
       this.soundes['fire'] = buffer
@@ -25,8 +26,22 @@ export default class SoundMagnagment {
 
   shoot() {
     if (this.loaded) {
-      // console.log('hree to play sound')
+      if (this.sound.isPlaying) this.sound.stop()
       this.sound.play()
+    }
+  }
+
+  playShot() {
+    if (this.listener.context.state === 'suspended') {
+      this.listener.context.resume().then(() => this.shoot())
+      return
+    }
+    this.shoot()
+  }
+
+  unlock() {
+    if (this.listener.context.state === 'suspended') {
+      this.listener.context.resume()
     }
   }
 

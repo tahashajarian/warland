@@ -23,18 +23,8 @@ export default class Controler {
       elemet.id = key[0];
       elemet.style.position = "fixed";
 
-      elemet.ontouchstart = (e) => {
-        e.stopPropagation()
-        if (key[0] !== 'pause') {
-
-          this.movement.forward = false;
-          this.movement.back = false;
-          this.movement.right = false;
-          this.movement.left = false
-          this.movement[key[0]] = true;
-        }
-      };
       elemet.onpointerdown = (e) => {
+        e.preventDefault()
         if (key[0] !== 'pause') {
 
           e.stopPropagation()
@@ -45,15 +35,10 @@ export default class Controler {
           this.movement[key[0]] = true;
         }
       };
-      elemet.onpointerup = (e) => {
+      const release = (e) => {
         e.stopPropagation()
         if (key[0] === 'pause') {
-          if (this.movement.pause) {
-            this.movement.pause = false;
-            this.parent.update()
-          } else {
-            this.movement.pause = true;
-          }
+          this.parent.setPaused(!this.movement.pause)
           this.updateDisplay();
         } else {
 
@@ -65,27 +50,8 @@ export default class Controler {
           this.movement[key[0]] = false;
         }
       };
-      elemet.ontouchend = () => {
-        e.stopPropagation()
-        if (key[0] === 'pause') {
-          if (this.movement.pause) {
-            this.movement.pause = false;
-            this.parent.update()
-          } else {
-            this.movement.pause = true;
-          }
-          this.updateDisplay();
-        } else {
-
-
-          this.movement.forward = false;
-          this.movement.back = false;
-          this.movement.right = false;
-          this.movement.left = false;
-          this.movement[key[0]] = false;
-        }
-      };
-
+      elemet.onpointerup = release;
+      elemet.onpointercancel = release;
       if (key[0] === "forward") {
         elemet.style.bottom = "50px";
         elemet.style.left = "30px";
@@ -194,12 +160,7 @@ export default class Controler {
           break;
 
         case "Escape":
-          if (this.movement.pause) {
-            this.movement.pause = false;
-            this.parent.update()
-          } else {
-            this.movement.pause = true;
-          }
+          this.parent.setPaused(!this.movement.pause)
           this.updateDisplay();
           break;
 

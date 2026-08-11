@@ -8,9 +8,9 @@ module.exports = {
   output:
   {
     filename: 'bundle.[contenthash].js',
-    path: path.resolve(__dirname, '../dist')
+    path: path.resolve(__dirname, '../dist'),
+    clean: true
   },
-  devtool: 'source-map',
   plugins:
     [
       new CopyWebpackPlugin({
@@ -34,16 +34,6 @@ module.exports = {
           use: ['html-loader']
         },
 
-        // JS
-        {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          use:
-            [
-              'babel-loader'
-            ]
-        },
-
         // CSS
         {
           test: /\.css$/,
@@ -53,45 +43,6 @@ module.exports = {
               'css-loader'
             ]
         },
-
-        // Images
-        {
-          test: /\.(jpg|png|gif|svg)$/,
-          use:
-            [
-              {
-                loader: 'file-loader',
-                options:
-                {
-                  outputPath: 'assets/images/'
-                }
-              }
-            ]
-        },
-
-        // Fonts
-        {
-          test: /\.(ttf|eot|woff|woff2)$/,
-          use:
-            [
-              {
-                loader: 'file-loader',
-                options:
-                {
-                  outputPath: 'assets/fonts/'
-                }
-              }
-            ]
-        },
-
-        // Shaders
-        {
-          test: /\.(glsl|vs|fs|vert|frag)$/,
-          exclude: /node_modules/,
-          use: [
-            'raw-loader'
-          ]
-        }
       ]
   }
 }

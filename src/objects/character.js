@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { GAME_CONFIG } from "../config";
 
 export class Character {
   constructor(parent, scene, mixers) {
@@ -11,8 +12,8 @@ export class Character {
     this.rotateQuarternion = new THREE.Quaternion();
     this.cameraTarget = new THREE.Vector3();
 
-    this.runVelocity = 6;
-    this.walkVelocity = 3;
+    this.runVelocity = GAME_CONFIG.runVelocity;
+    this.walkVelocity = GAME_CONFIG.walkVelocity;
     this.gunRotateAxis = {
       "x": 0.91,
       "y": 3.14,
@@ -24,6 +25,9 @@ export class Character {
       "z": 0
     }
     this._vector = new THREE.Vector3();
+    this._rayOrigin = new THREE.Vector3();
+    this._rayDirection = new THREE.Vector3();
+    this._aimTarget = new THREE.Vector3();
 
     this.init();
     this.addAim();
@@ -152,12 +156,32 @@ export class Character {
   }
 
   update(delta) {
+    if (this.parent.loaded && this.currentAction === 'shoot') {
+      const shootAction = this.animations.shoot.action
+      if (!this.shotSoundPlayed && shootAction.time >= GAME_CONFIG.shotSoundDelayMs / 1000) {
+        this.parent.soundManagement.playShot()
+        this.shotSoundPlayed = true
+      }
+      if (!this.shotResolved && shootAction.time >= GAME_CONFIG.shotFireDelayMs / 1000) {
+        this.resolveShot()
+      }
+      return
+    }
     if (this.parent.loaded && this.currentAction !== 'shoot') {
-      this.raycaster.set(new THREE.Vector3(this.character.position.x, 1, this.character.position.z), new THREE.Vector3(this.parent.camera.getWorldDirection(this.walkDirection).x, 0, this.parent.camera.getWorldDirection(this.walkDirection).z).normalize())
-      const intersects = this.raycaster.intersectObjects(this.scene.children);
+      this._rayOrigin.set(this.character.position.x, 1, this.character.position.z)
+      this.parent.camera.getWorldDirection(this._rayDirection)
+      this._rayDirection.y = 0
+      this._rayDirection.normalize()
+      this.raycaster.set(this._rayOrigin, this._rayDirection)
+      const targets = [...this.parent.wall.meshes, ...this.parent.enemies.zombies.map(zombie => zombie.planeMesh)]
+      const intersects = this.raycaster.intersectObjects(targets);
+      const isTargetingZombie = intersects[0] && intersects[0].object.status === 'alive'
+      this.aim.material.color.setHex(isTargetingZombie ? 0xff3030 : 0xffffff)
 
       if (intersects && intersects[0] && intersects[0].distance) {
-        this.amiDistance = intersects[0].distance - 0.5
+        this.amiDistance = Math.max(1, intersects[0].distance - 0.5)
+      } else {
+        this.amiDistance = 15
       }
 
       this.rotateAndMoveAim(delta);
@@ -179,10 +203,10 @@ export class Character {
         this.playAnimation("idle");
       }
       if (this.parent.movement.right) {
-        this.rotateCamera(true)
+        this.rotateCamera(true, delta)
       }
       if (this.parent.movement.left) {
-        this.rotateCamera(false)
+        this.rotateCamera(false, delta)
       }
       this.rotateCharacter(delta);
     }
@@ -193,34 +217,47 @@ export class Character {
     const toPlay = this.animations[animation].action;
     const current = this.animations[this.currentAction].action;
     if (animation === 'shoot') {
-      setTimeout(() => {
-        const intersects = this.raycaster.intersectObjects(this.scene.children);
-        for (let i = 0; i < intersects.length; i++) {
-          if (intersects[i].object.status === 'alive') {
-            const zombies = this.parent.enemies.zombies
-            const id = intersects[i].object.myId
-            const dead = zombies.find(zombie => zombie.myId === id);
-            if (dead) {
-              dead.status = 'dead'
-              this.scene.remove(intersects[i].object)
-              this.parent.updateScore(intersects[i].distance)
-            }
-          }
-        }
-      }, 1500);
+      this.pendingShotRay = this.raycaster.ray.clone()
+      this.shotSoundPlayed = false
+      this.shotResolved = false
       toPlay.setLoop(THREE.LoopOnce, 1);
       toPlay.clampWhenFinished = true;
-      this.parent.soundManagement.shoot();
     }
     current.fadeOut(this.fadeDuration);
     toPlay.reset().fadeIn(this.fadeDuration).play();
     this.currentAction = animation;
   }
 
+  resolveShot() {
+    this.shotResolved = true
+    const shotRaycaster = new THREE.Raycaster(
+      this.pendingShotRay.origin,
+      this.pendingShotRay.direction
+    )
+    const enemyTargets = this.parent.enemies.zombies
+      .filter(zombie => zombie.status === 'alive')
+      .map(zombie => zombie.planeMesh)
+    const [hit] = shotRaycaster.intersectObjects([
+      ...this.parent.wall.meshes,
+      ...enemyTargets,
+    ])
+    if (!hit || hit.object.status !== 'alive') return
+
+    const dead = this.parent.enemies.zombies.find(
+      zombie => zombie.myId === hit.object.myId
+    )
+    if (dead) {
+      dead.status = 'dead'
+      this.scene.remove(hit.object)
+      this.parent.updateScore(hit.distance)
+    }
+  }
+
 
 
   rotateAndMoveAim(delta) {
-    this.aim.lookAt(new THREE.Vector3(this.character.position.x, 2, this.character.position.z))
+    this._aimTarget.set(this.character.position.x, 2, this.character.position.z)
+    this.aim.lookAt(this._aimTarget)
     // this.aim.position.set(this.character.position.x, 2.5, this.character.position.z + 10)
     const y = this.character.rotation.y
     if (this.character.rotation.x < 0) {
@@ -273,32 +310,37 @@ export class Character {
         this.parent.camera.position.z += moveZ / 2;
       }
 
+      const halfSize = GAME_CONFIG.arenaHalfSize
+      const clampedX = THREE.MathUtils.clamp(this.character.position.x, -halfSize, halfSize)
+      const clampedZ = THREE.MathUtils.clamp(this.character.position.z, -halfSize, halfSize)
+      this.parent.camera.position.x += clampedX - this.character.position.x
+      this.parent.camera.position.z += clampedZ - this.character.position.z
+      this.character.position.x = clampedX
+      this.character.position.z = clampedZ
+
       this.updateCameraTarget();
     }
   }
 
 
-  rotateCamera(right) {
+  rotateCamera(right, delta) {
     this._vector.setFromMatrixColumn(this.parent.camera.matrix, 0);
 
-    this.parent.camera.position.addScaledVector(this._vector, right ? -0.2 : 0.2);
+    this.parent.camera.position.addScaledVector(this._vector, (right ? -1 : 1) * 12 * delta);
 
   }
 
   updateCameraTarget(moveX, moveZ) {
     // update camera target
     this.cameraTarget.x = this.character.position.x;
-    this.cameraTarget.y = this.character.position.y;
+    this.cameraTarget.y = this.character.position.y + GAME_CONFIG.cameraTargetHeight;
     this.cameraTarget.z = this.character.position.z;
     this.parent.controls.target = this.cameraTarget;
   }
 
   shoot() {
     if (this.parent.loaded) {
-
-      // this.drawRaycastLine(this.raycaster)
-
-
+      this.parent.soundManagement.unlock();
       this.playAnimation("shoot");
     }
   }
@@ -322,41 +364,6 @@ export class Character {
     this.aim = new THREE.Mesh(geo, material);
     this.aim.position.set(0, 2.1, 5)
     this.scene.add(this.aim)
-  }
-
-  drawRaycastLine(raycaster) {
-    let material = new THREE.LineBasicMaterial({
-      color: 0xff0000,
-      linewidth: 2
-    });
-    let geometry = new THREE.Geometry();
-    let startVec = new THREE.Vector3(
-      raycaster.ray.origin.x,
-      raycaster.ray.origin.y,
-      raycaster.ray.origin.z);
-
-    let endVec = new THREE.Vector3(
-      raycaster.ray.direction.x,
-      raycaster.ray.direction.y,
-      raycaster.ray.direction.z);
-
-    // could be any number
-    endVec.multiplyScalar(5000);
-
-    // get the point in the middle
-    let midVec = new THREE.Vector3();
-    midVec.lerpVectors(startVec, endVec, 0.5);
-
-    geometry.vertices.push(startVec);
-    geometry.vertices.push(midVec);
-    geometry.vertices.push(endVec);
-
-    // console.log('vec start', startVec);
-    // console.log('vec mid', midVec);
-    // console.log('vec end', endVec);
-
-    let line = new THREE.Line(geometry, material);
-    this.scene.add(line);
   }
 
 }
