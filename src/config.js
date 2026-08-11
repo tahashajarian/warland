@@ -1,6 +1,6 @@
 export const GAME_CONFIG = Object.freeze({
   arenaHalfSize: 48,
-  cameraPosition: Object.freeze({ x: 0, y: 5, z: -9 }),
+  cameraPosition: Object.freeze({ x: 0, y: 6, z: -9 }),
   cameraMinDistance: 6,
   cameraMaxDistance: 11,
   cameraTargetHeight: 2,
